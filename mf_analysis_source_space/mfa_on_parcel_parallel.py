@@ -2,6 +2,10 @@
 This scripts reads the .mat files in the folder /SSS and performs multifractal
 analysis on the data.
 
+
+This file should be executed independently for each source reconstruction parameter,
+by chosing the appropriate raw_dir_name
+
 # NOTE:
     Running time: - about 3h30min for one group/one value of SNR
                   - Intel Xeon E5440 @ 2.83Ghz x 8
@@ -14,23 +18,37 @@ from scipy.io import loadmat
 from multiprocessing import Process
 import h5py
 import numpy as np
+import json
 import mfanalysis as mf
 
 #===============================================================================
 # GLOBAL PARAMETERS
 #===============================================================================
-# folder containing /data   (attention here if this file is put in another folder)
+# folder containing /data_out   (attention here if this file is put in another folder)
 project_dir = dirname(dirname(abspath(__file__))) 
+sys.path.insert(0, project_dir)
+
+# time string
+time_str = '20180709'
 
 # Raw data folder name
-raw_dir_name = 'Raw_on_Parc_mydata_400Hz_20180412'
+raw_dir_name = 'raw_on_parc_400Hz_'+ time_str +'_rec_param_0'
 
-# Output folder name
-out_dir_name = 'MF_parcel_python_400Hz_SNR_1'
+# Output folder name (the index of the source reconstruction 
+#                     parameters will be appended to out_dir_name)
+out_dir_name = 'mf_parcel_400Hz_'+ time_str + '_rec_param_0'
 
 # Number of processes to run in parallel
 N_PROCESS = 2
 
+#------------------------------------------------------------------------------
+# Load info and params
+#------------------------------------------------------------------------------
+import source_reconstruction_params
+import meg_info
+import mf_config
+info              = meg_info.get_info()
+mf_params         = mf_config.get_mf_params()
 
 #===============================================================================
 # MAIN SCRIPT
@@ -41,70 +59,50 @@ def main():
     # Parameters
     #---------------------------------------------------------------------------
 
-    # groups and subjects
-    groups      = ['AV','AVr', 'V']
-    subjects    = {}
-    subjects['AV'] = ['nc_110174','da_110453','mb_110421','bl_110396','fp_110067','kr_080082', \
-            'ks_110142','ld_110370','mp_110340','na_110353','pc_110210','pe_110338']
+    # # groups and subjects
+    # groups   = ['AV', 'V', 'AVr']
+    # subjects = {}
+    # subjects['AV'] = info['subjects']['AV']
+    # subjects['V'] = info['subjects']['V']
+    # subjects['AVr'] = info['subjects']['AVr']
+    # conditions  = info['sessions']
+    
+    groups   = ['AV']
+    subjects = {}
+    subjects['AV'] = info['subjects']['AV'][0:1]
+    conditions  = ['rest0', 'rest5']
 
-    subjects['V'] = ['jh_100405','gc_100388','jm_100109','vr_100551','fb_110137','aa_100234', \
-       'cl_100240','jh_110224','mn_080208','in_110286','tl_110313','cm_110222']
 
-    subjects['AVr'] = ['jm_100042','cd_100449','ap_110299','ma_130185','mj_130216','rg_110386', \
-      'ga_130053','jd_110235','sa_130042','bd_120417','ak_130184','mr_080072']
-
-
-    # data folder
-    data_dir = {}
-    for group in groups:
-        data_dir[group] = os.path.join(project_dir, 'data', 'MEG', 'dataset1', 'SSS', group) # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-    # raw data folder / example: raw_data_dir['AV']['nc_110174']
+    # folder containing raw data
     raw_data_dir = {}
-    for group in groups:
-        raw_data_dir[group] = {}
-        for subject in subjects[group]:
-            raw_data_dir[group][subject] = \
-                os.path.join(data_dir[group], subject, raw_dir_name)
+    for gg in groups:
+        raw_data_dir[gg] = {}
+        for ss in subjects[gg]:
+            raw_data_dir[gg][ss] = os.path.join(info['paths_to_subjects_output'][gg][ss], 
+                                                raw_dir_name)
 
 
-
-    # create output folders / example: output_dir['AV']['nc_110174']
-    output_dir = {}
-    for group in groups:
-        output_dir[group] = {}
-        for subject in subjects[group]:
-            output_dir[group][subject] = \
-                os.path.join(data_dir[group], subject, out_dir_name)
-
-            if not os.path.exists(output_dir[group][subject]):
-                os.makedirs(output_dir[group][subject])
+    # output folders / example: output_dir['AV']['nc_110174']
+    output_dir   = {}
+    for gg in groups:
+        output_dir[gg] = {}
+        for ss in subjects[gg]:
+            output_dir[gg][ss] = os.path.join(info['paths_to_subjects_output'][gg][ss], 
+                                              out_dir_name)
 
 
-    # conditions <-> files
+    # conditions <-> files, 
+    #      example: runs['posttest'] = ['posttest.mat', 'posttest_bis.mat']
+    #               runs['rest0']    = ['rest0.mat']
     runs = {}
-    runs['rest0']    = ['rest0.mat']
-    runs['rest5']    = ['rest5.mat']
-    runs['pretest']  = ['pretest.mat', 'pretest_bis.mat']
-    runs['posttest'] = ['posttest.mat', 'posttest_bis.mat']
+    for cond in conditions:
+        runs[cond] = [cond + '.mat']
+        if 'test' in cond:
+            runs[cond].append( cond + '_bis.mat'  )
+
 
     # number of labels
     n_labels = 138
-
-    #---------------------------------------------------------------------------
-    # MF params
-    #---------------------------------------------------------------------------
-
-    # 'global' args
-    mf_args = {}
-    mf_args['wt_name'] = 'db3'
-    mf_args['j1'] = 8
-    mf_args['j2'] = 12
-    mf_args['q'] = np.arange(-8, 9)
-    mf_args['n_cumul'] = 3
-    mf_args['gamint'] = 1.0
-    mf_args['wtype'] = 0
-    mf_args['verbose'] = 1
 
     #---------------------------------------------------------------------------
     # Start processes
@@ -112,11 +110,11 @@ def main():
     process_list  = []
     for group in groups:
         for subject in subjects[group]:
-            for condition in runs:
+            for condition in conditions:
                 new_process = Process(
                               target = run_mf_analysis,
                               args = (group, subject, condition,
-                                      mf_args,
+                                      mf_params,
                                       runs,
                                       raw_data_dir,
                                       output_dir,
@@ -131,161 +129,89 @@ def main():
 
 
 def run_mf_analysis(group, subject, condition,
-                    mf_args,
+                    mf_params,
                     runs,
                     raw_data_dir,
                     output_dir,
                     n_labels):
 
-    #---------------------------------------------------------------------------
-    # Create MF objects
-    #---------------------------------------------------------------------------
+    for mf_param_idx, mf_params_instance in enumerate(mf_params):
+        #---------------------------------------------------------------------------
+        # Create MF object
+        #---------------------------------------------------------------------------
+        mfa = mf.MFA(**mf_params_instance)
+        mfa.verbose = 1
 
-    # Wavelet coefficients
-    mfa_dwt = mf.MFA(**mf_args)
-    mfa_dwt.p = None
-    mfa_dwt.formalism = 'wcmf'
+        #---------------------------------------------------------------------------
+        # Run
+        #---------------------------------------------------------------------------
+        print("*** Running: ", group, subject, condition)
 
-    # Wavelet leaders
-    mfa_lwt = mf.MFA(**mf_args)
-    mfa_lwt.p = np.inf
+        # cumulants and log-cumulants
+        cumulants = []
+        cp = np.zeros((n_labels, mf_params_instance['n_cumul']))
 
-    # p-leaders, p = 1
-    mfa_p1 = mf.MFA(**mf_args)
-    mfa_p1.p = 1.0
+        # iterate through files of a given condition
+        for file_idx, filename in enumerate(runs[condition]):
+            print("-- analyzing file: ", filename)
+            # load data
+            filename_full = os.path.join(raw_data_dir[group][subject],filename)
+            contents = loadmat(filename_full)
+            radial   = contents['Radial']
+            nrows, ncols = radial.shape
 
-    # p-leaders, p = 2
-    mfa_p2 = mf.MFA(**mf_args)
-    mfa_p2.p = 2.0
+            assert nrows == n_labels # verification
 
-    #---------------------------------------------------------------------------
-    # Run
-    #---------------------------------------------------------------------------
-    print("*** Running: ", group, subject, condition)
+            # iterate through labels
+            for row in range(n_labels):
+                data = radial[row,:]
+                mfa.analyze(data)
 
-    # cumulants and log-cumulants
-    cumulants_dwt = []
-    cumulants_lwt = []
-    cumulants_p1  = []
-    cumulants_p2  = []
+                if file_idx == 0:
+                    # remove mrq from cumulants to save memory (very important!)
+                    mfa.cumulants.mrq = None
 
-    cp_dwt = np.zeros((n_labels, mf_args['n_cumul']))
-    cp_lwt = np.zeros((n_labels, mf_args['n_cumul']))
-    cp_p1  = np.zeros((n_labels, mf_args['n_cumul']))
-    cp_p2  = np.zeros((n_labels, mf_args['n_cumul']))
+                    # store cumulants
+                    cumulants.append(mfa.cumulants)
 
-    # iterate through files of a given condition
-    for file_idx, filename in enumerate(runs[condition]):
-
-        print("-- analyzing file: ", filename)
-        # load data
-        filename_full = os.path.join(raw_data_dir[group][subject], filename)
-        contents = loadmat(filename_full)
-        radial   = contents['Radial']
-        nrows, ncols = radial.shape
-
-        assert nrows == n_labels # verification
-
-        # iterate through labels
-        for row in range(n_labels):
-            data = radial[row,:]
-            mfa_dwt.analyze(data)
-            mfa_lwt.analyze(data)
-            mfa_p1.analyze(data)
-            mfa_p2.analyze(data)
-
-            if file_idx == 0:
-                # remove mrq from cumulants to save memory (very important!)
-                mfa_dwt.cumulants.mrq = None
-                mfa_lwt.cumulants.mrq = None
-                mfa_p1.cumulants.mrq = None
-                mfa_p2.cumulants.mrq = None
-                # store cumulants
-                cumulants_dwt.append(mfa_dwt.cumulants)
-                cumulants_lwt.append(mfa_lwt.cumulants)
-                cumulants_p1.append(mfa_p1.cumulants)
-                cumulants_p2.append(mfa_p2.cumulants)
-            else:
-                cumulants_dwt[row].sum(mfa_dwt.cumulants)
-                cumulants_lwt[row].sum(mfa_lwt.cumulants)
-                cumulants_p1[row].sum(mfa_p1.cumulants)
-                cumulants_p2[row].sum(mfa_p2.cumulants)
-
-            if file_idx == len(runs[condition]) - 1:
-                # update cp
-                cp_dwt[row,:] = cumulants_dwt[row].log_cumulants
-                cp_lwt[row,:] = cumulants_lwt[row].log_cumulants
-                cp_p1[row,:]  = cumulants_p1[row].log_cumulants
-                cp_p2[row,:]  = cumulants_p2[row].log_cumulants
-
-                # Update cumulants C_m(j)
-                if row == 0:
-                    # - initialize
-                    cj_dwt = np.zeros( (n_labels,) + cumulants_dwt[row].values.shape )
-                    cj_lwt = np.zeros( (n_labels,) + cumulants_lwt[row].values.shape )
-                    cj_p1 = np.zeros( (n_labels,) +  cumulants_p1[row].values.shape )
-                    cj_p2 = np.zeros( (n_labels,) +  cumulants_p2[row].values.shape )
-
-                    nj_dwt = np.zeros( (n_labels, cumulants_dwt[row].values.shape[1]))
-                    nj_lwt = np.zeros( (n_labels, cumulants_lwt[row].values.shape[1]))
-                    nj_p1 = np.zeros( (n_labels, cumulants_p1[row].values.shape[1]) )
-                    nj_p2 = np.zeros( (n_labels, cumulants_p2[row].values.shape[1]) )
-
-                # - update
-                cj_dwt[row, :, :] = cumulants_dwt[row].values
-                cj_lwt[row, :, :] = cumulants_lwt[row].values
-                cj_p1[row, :, :]  = cumulants_p1[row].values
-                cj_p2[row, :, :]  = cumulants_p2[row].values
-
-                nj_dwt[row, :]  = cumulants_dwt[row].get_nj()
-                nj_lwt[row, :]  = cumulants_lwt[row].get_nj()
-                nj_p1[row,  :]  = cumulants_p1[row].get_nj()
-                nj_p2[row,  :]  = cumulants_p2[row].get_nj()
+                else:
+                    cumulants[row].sum(mfa.cumulants)
 
 
-    # save file for current condition
-    out_filename = os.path.join(output_dir[group][subject], condition + '_v2.h5')
+                if file_idx == len(runs[condition]) - 1:
+                    # update cp
+                    cp[row,:] = cumulants[row].log_cumulants
 
-    with h5py.File(out_filename, "w") as f:
-        params = f.create_dataset('params', data = np.array([0]) )
-        params.attrs['j1']     = mf_args['j1']
-        params.attrs['j2']     = mf_args['j2']
-        params.attrs['wtype']  = mf_args['wtype']
-        params.attrs['n_cumul']  = mf_args['n_cumul']
-        params.attrs['gamint']  = mf_args['gamint']
+                    # Update cumulants C_m(j)
+                    if row == 0:
+                        # - initialize
+                        cj = np.zeros( (n_labels,) + cumulants[row].values.shape )
+                        nj = np.zeros( (n_labels, cumulants[row].values.shape[1]))
 
+                    # - update
+                    cj[row, :, :] = cumulants[row].values
+                    nj[row, :]  = cumulants[row].get_nj()
 
-        dwt_group = f.create_group('DWT')
-        dwt_group.attrs['params'] = np.string_(str(mf_args))
-        dwt_nj_dataset  = dwt_group.create_dataset('nj', data = nj_dwt)
-        dwt_cp_dataset  = dwt_group.create_dataset('cp', data = cp_dwt )
-        dwt_cj_dataset  = dwt_group.create_dataset('Cj', data = cj_dwt )
-        dwt_group       = None
+        # save file for current condition
+        if not os.path.exists(output_dir[group][subject]):
+            os.makedirs(output_dir[group][subject])
 
-        lwt_group = f.create_group('LWT')
-        lwt_group.attrs['params'] = np.string_(str(mf_args))
-        lwt_nj_dataset = lwt_group.create_dataset('nj', data = nj_lwt)
-        lwt_cp_dataset = lwt_group.create_dataset('cp', data = cp_lwt )
-        lwt_cj_dataset  = lwt_group.create_dataset('Cj', data = cj_lwt )
-        lwt_group       = None
+        out_filename = os.path.join(output_dir[group][subject], condition + '_mf_param_%d'%mf_param_idx +'.h5')
 
-        p1_group = f.create_group('P1')
-        p1_group.attrs['params'] = np.string_(str(mf_args))
-        p1_nj_dataset = p1_group.create_dataset('nj', data = nj_p1)
-        p1_cp_dataset = p1_group.create_dataset('cp', data = cp_p1 )
-        p1_cj_dataset  = p1_group.create_dataset('Cj', data = cj_p1 )
-        p1_group       = None
-
-        p2_group = f.create_group('P2')
-        p2_group.attrs['params'] = np.string_(str(mf_args))
-        p2_nj_dataset = p2_group.create_dataset('nj', data = nj_p2)
-        p2_cp_dataset = p2_group.create_dataset('cp', data = cp_p2 )
-        p2_cj_dataset  = p2_group.create_dataset('Cj', data = cj_p2 )
-        p2_group       = None
-
-    print("-- saved file ", out_filename)
+        with h5py.File(out_filename, "w") as f:
+            params_string = np.string_(str(mf_params_instance))
+            f.create_dataset('nj', data = nj )
+            f.create_dataset('cp', data = cp )
+            f.create_dataset('Cj', data = cj )      
+        print("-- saved file ", out_filename)
 
 
+        # save params file
+        mf_params_filename = os.path.join(info['paths_to_subjects_output'][group][subject],
+                                          'mf_params_'+time_str+'.json')
 
-# if __name__ == '__main__':
-#     main()
+        with open(mf_params_filename, 'w') as outfile:
+                json.dump(mf_params, outfile, indent=4, sort_keys=True)
+
+if __name__ == '__main__':
+    main()

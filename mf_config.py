@@ -23,54 +23,57 @@ def get_mf_params():
     """
     mf_params = []
 
-    # new param - wlmf
-    param = {}
-    param['wt_name']   = 'db3'
-    param['formalism'] = None
-    param['p']         = np.inf
-    param['j1']        = 9
-    param['j2']        = 13
-    param['n_cumul']   = 3
-    param['gamint']    = 1.0
-    param['wtype']     = 0
-    mf_params.append(param)
-
-    # new param - p Leaders, p = 1
-    param = {}
-    param['wt_name']   = 'db3'
-    param['formalism'] = None
-    param['p']         = 1.0
-    param['j1']        = 9
-    param['j2']        = 13
-    param['n_cumul']   = 3
-    param['gamint']    = 1.0
-    param['wtype']     = 0
-    mf_params.append(param)
-
-    # new param, p Leaders, p = 2
-    param = {}
-    param['wt_name']   = 'db3'
-    param['formalism'] = None
-    param['p']         = 2.0
-    param['j1']        = 9
-    param['j2']        = 13
-    param['n_cumul']   = 3
-    param['gamint']    = 1.0
-    param['wtype']     = 0
-    mf_params.append(param)
-
-
     # new param, wcmf
     param = {}
     param['wt_name']   = 'db3'
     param['formalism'] = 'wcmf'
     param['p']         = None
-    param['j1']        = 9
-    param['j2']        = 13
+    param['j1']        = 8
+    param['j2']        = 12
     param['n_cumul']   = 3
     param['gamint']    = 1.0
     param['wtype']     = 0
     mf_params.append(param)
+
+
+    # new param - wlmf
+    param = {}
+    param['wt_name']   = 'db3'
+    param['formalism'] = None
+    param['p']         = np.inf
+    param['j1']        = 8
+    param['j2']        = 12
+    param['n_cumul']   = 3
+    param['gamint']    = 1.0
+    param['wtype']     = 0
+    mf_params.append(param)
+
+
+    # new param - p = 1
+    param = {}
+    param['wt_name']   = 'db3'
+    param['formalism'] = None
+    param['p']         = 1.0
+    param['j1']        = 8
+    param['j2']        = 12
+    param['n_cumul']   = 3
+    param['gamint']    = 1.0
+    param['wtype']     = 0
+    mf_params.append(param)
+
+
+    # new param - p = 2
+    param = {}
+    param['wt_name']   = 'db3'
+    param['formalism'] = None
+    param['p']         = 2.0
+    param['j1']        = 8
+    param['j2']        = 12
+    param['n_cumul']   = 3
+    param['gamint']    = 1.0
+    param['wtype']     = 0
+    mf_params.append(param)
+
 
 
     return mf_params

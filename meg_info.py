@@ -69,7 +69,10 @@ def get_info(dataset_dir = SUBJECTS_DIR, subjects_dir = SUBJECTS_DIR):
     project_dir = current_dir
 
     # output folders
-    dataset_dir_output = os.path.join(project_dir, 'data_out')
+
+    # - output to source reconstruction on parcellation and to mf analysis of each raw file
+    dataset_dir_output = os.path.join(project_dir, 'data_out') 
+    # - output folder to files summarizing mf analysis
     dataset_dir_mf_output = os.path.join(project_dir, 'data_mf_out')
 
     # path to subjects data, example: paths_to_subjects['AV']['nc_110174']

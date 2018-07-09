@@ -103,7 +103,7 @@ def run_source_rec(param_idx, param, group, subject):
 
     write_dir = os.path.join(info['paths_to_subjects_output'][group][subject],
                                   raw_folder_name + '_'+ timestr + \
-                                  '_rec_param_index_' + str(param_idx) )
+                                  '_rec_param_' + str(param_idx) )
     if not os.path.exists(write_dir):
         os.mkdir(write_dir)
 
