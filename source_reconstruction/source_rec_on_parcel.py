@@ -26,7 +26,7 @@ from multiprocessing import Process
 #------------------------------------------------------------------------------
 # Maximum number of processes to run in parallel
 #------------------------------------------------------------------------------
-N_PROCESS = 1
+N_PROCESS = 3
 
 #------------------------------------------------------------------------------
 # Info for output files
@@ -47,11 +47,11 @@ params = source_reconstruction_params.get_params()
 #-------------------------------------------------------------------------------
 # Select subjects
 #-------------------------------------------------------------------------------
-groups   = ['AV', 'V', 'AVr']
+groups   = ['AV'] #, 'V', 'AVr']
 subjects = {}
 subjects['AV'] = info['subjects']['AV']
-subjects['V'] = info['subjects']['V']
-subjects['AVr'] = info['subjects']['AVr']
+# subjects['V'] = info['subjects']['V']
+# subjects['AVr'] = info['subjects']['AVr']
 
 #-------------------------------------------------------------------------------
 # Other params and functions

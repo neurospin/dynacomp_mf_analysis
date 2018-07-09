@@ -10,15 +10,12 @@ This file defines global information about MEG data, such as:
 import sys, os
 from os.path import dirname, abspath
 
+DATASET_DIR  = '/neurospin/meg/meg_tmp/Dynacomp_Ciuciu_2011/Results/data'
 
-SUBJECTS_DIR = '/neurospin/meg/meg_tmp/Dynacomp_Ciuciu_2011/yousra'
-DATASET_DIR  = '/neurospin/tmp/Omar/data'
-
-def get_info(dataset_dir = DATASET_DIR, subjects_dir = SUBJECTS_DIR):
+def get_info(dataset_dir = DATASET_DIR):
     """
     Args:
         dataset_dir: path to folder containing /SSS
-        subjects_dir: path to folder containing /subjects
 
     Returns a dictionary (info) containing:
         - info['groups']
@@ -26,7 +23,6 @@ def get_info(dataset_dir = DATASET_DIR, subjects_dir = SUBJECTS_DIR):
         - info['sessions']
 
         - info['dataset_dir']
-        - info['subjects_dir']
         - info['dataset_dir_output']
         - info['dataset_dir_mf_output']
         - info['paths_to_subjects']        ; example: paths_to_subjects['AV']['nc_110174']
@@ -80,9 +76,9 @@ def get_info(dataset_dir = DATASET_DIR, subjects_dir = SUBJECTS_DIR):
     for group in groups:
         paths_to_subjects[group] = {}
         for subject in subjects[group]:
-                paths_to_subjects[group][subject] = \
-                    os.path.join(dataset_dir, 'SSS', group,subject)
-
+                temp = os.path.join(dataset_dir, 'SSS', group,subject)
+                numeric_folder = os.listdir(temp)[0]
+                paths_to_subjects[group][subject] = os.path.join(temp, numeric_folder)
 
     # path to events data, example: paths_to_events['AV']['nc_110174']
     paths_to_events = {}
@@ -90,7 +86,7 @@ def get_info(dataset_dir = DATASET_DIR, subjects_dir = SUBJECTS_DIR):
         paths_to_events[group] = {}
         for subject in subjects[group]:
                 paths_to_events[group][subject] = \
-                    os.path.join(dataset_dir, 'SSS', group, subject,'events','raw')
+                    os.path.join(paths_to_subjects[group][subject],'events','raw')
 
 
     # path to subjects output data, example: paths_to_subjects_output['AV']['nc_110174']
@@ -103,11 +99,11 @@ def get_info(dataset_dir = DATASET_DIR, subjects_dir = SUBJECTS_DIR):
 
 
     info['dataset_dir'] = dataset_dir
-    info['subjects_dir'] = subjects_dir
     info['dataset_dir_output'] = dataset_dir_output
     info['dataset_dir_mf_output'] = dataset_dir_mf_output
     info['paths_to_subjects'] = paths_to_subjects
     info['paths_to_events'] = paths_to_events
     info['paths_to_subjects_output'] = paths_to_subjects_output
+
 
     return info
