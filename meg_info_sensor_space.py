@@ -95,7 +95,7 @@ def get_info(dataset_dir = DATASET_DIR):
         paths_to_subjects_output[group] = {}
         for subject in subjects[group]:
                 paths_to_subjects_output[group][subject] = \
-                    os.path.join(dataset_dir_output, 'source_rec_on_parcel', group,subject)
+                    os.path.join(dataset_dir_output, 'mf_sensors', group,subject)
 
 
     info['dataset_dir'] = dataset_dir

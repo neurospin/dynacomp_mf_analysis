@@ -43,8 +43,7 @@ def get_my_selection(file_name):
     return start,stop
 
 
-
-def get_raw(group, subject, condition, bis = True):
+def get_raw(group, subject, condition, bis = False):
     subject_path = info['paths_to_subjects'][group][subject]
     raw_filename = os.path.join( subject_path,     
                                  '%s_%s_raw_trans_sss.fif'%(group,condition))
@@ -168,7 +167,7 @@ def get_ica(raw, method = 'fastica',
     return ica
 
 
-def preprocess_raw(raw, plot = True):
+def preprocess_raw(raw, plot = False):
 
     mne.channels.fix_mag_coil_types(raw.info)
 

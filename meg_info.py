@@ -13,12 +13,16 @@ from os.path import dirname, abspath
 
 SUBJECTS_DIR = '/neurospin/meg/meg_tmp/Dynacomp_Ciuciu_2011/yousra'
 DATASET_DIR  = '/neurospin/tmp/Omar/data'
+FSAVERAGE_DIR = '/neurospin/tmp/Omar/data'
 
-def get_info(dataset_dir = DATASET_DIR, subjects_dir = SUBJECTS_DIR):
+def get_info(dataset_dir = DATASET_DIR, 
+             subjects_dir = SUBJECTS_DIR, 
+             fsaverage_dir = FSAVERAGE_DIR):
     """
     Args:
         dataset_dir: path to folder containing /SSS
         subjects_dir: path to folder containing /subjects
+        fsaverage_dir: path to folder containing /fsaverage
 
     Returns a dictionary (info) containing:
         - info['groups']
@@ -27,6 +31,7 @@ def get_info(dataset_dir = DATASET_DIR, subjects_dir = SUBJECTS_DIR):
 
         - info['dataset_dir']
         - info['subjects_dir']
+        - info['fsaverage_dir']
         - info['dataset_dir_output']
         - info['dataset_dir_mf_output']
         - info['paths_to_subjects']        ; example: paths_to_subjects['AV']['nc_110174']
@@ -104,6 +109,7 @@ def get_info(dataset_dir = DATASET_DIR, subjects_dir = SUBJECTS_DIR):
 
     info['dataset_dir'] = dataset_dir
     info['subjects_dir'] = subjects_dir
+    info['fsaverage_dir'] = fsaverage_dir
     info['dataset_dir_output'] = dataset_dir_output
     info['dataset_dir_mf_output'] = dataset_dir_mf_output
     info['paths_to_subjects'] = paths_to_subjects

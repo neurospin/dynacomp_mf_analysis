@@ -29,14 +29,14 @@ project_dir = dirname(dirname(abspath(__file__)))
 sys.path.insert(0, project_dir)
 
 # time string
-time_str = '20180709'
+time_str = '20180710'
 
 # Raw data folder name
-raw_dir_name = 'raw_on_parc_400Hz_'+ time_str +'_rec_param_0'
+raw_dir_name = 'raw_on_parc_400Hz_'+ time_str +'_rec_param_1'
 
 # Output folder name (the index of the source reconstruction 
 #                     parameters will be appended to out_dir_name)
-out_dir_name = 'mf_parcel_400Hz_'+ time_str + '_rec_param_0'
+out_dir_name = 'mf_parcel_400Hz_'+ time_str + '_rec_param_1'
 
 # Number of processes to run in parallel
 N_PROCESS = 2
@@ -60,11 +60,12 @@ def main():
     #---------------------------------------------------------------------------
 
     # groups and subjects
-    groups   = ['AV', 'V', 'AVr']
+    groups   = ['AV']
+    # groups   = ['AV', 'V', 'AVr']
     subjects = {}
     subjects['AV'] = info['subjects']['AV']
-    subjects['V'] = info['subjects']['V']
-    subjects['AVr'] = info['subjects']['AVr']
+    # subjects['V'] = info['subjects']['V']
+    # subjects['AVr'] = info['subjects']['AVr']
     conditions  = info['sessions']
     
 
@@ -195,6 +196,7 @@ def run_mf_analysis(group, subject, condition,
 
         with h5py.File(out_filename, "w") as f:
             params_string = np.string_(str(mf_params_instance))
+            f.create_dataset('params', data = params_string )
             f.create_dataset('nj', data = nj )
             f.create_dataset('cp', data = cp )
             f.create_dataset('Cj', data = cj )      
