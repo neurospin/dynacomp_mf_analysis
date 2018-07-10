@@ -14,6 +14,7 @@ Data required:
 
 
 Information about data location, groups, subjects and conditions must be defined in the scripts:
+
     * meg_info.py, for source space analysis
     * meg_info_sensor_space.py, for sensor space analysis
 
