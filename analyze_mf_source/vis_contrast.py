@@ -1,14 +1,17 @@
 """
-Perfoms hypothesis testing on H (self-similarity) and M (multifractality)
-and plot on the cortex surface the significant values 
+Performs the following tests:
 
-Test for H:
-    H0:  H = 0.5
-    H1:  H != 0.5
+- For H:
+	H0:  Hrest = Htask
+	H1:  Hrest > Htask
 
-Test for M:
-    H0:  M = 0
-    H1:  M > 0
+- For M:
+	H0:  Mrest = Mtask
+	H1:  Mrest < Mtask
+
+!!! Important:
+
+positive values of c2 are set to 0 before the test
 """
 
 import sys, os
@@ -17,7 +20,7 @@ from os.path import dirname, abspath
 sys.path.insert(0, dirname(dirname(abspath(__file__))))
 
 import numpy as np
-from scipy.stats import ttest_1samp
+from scipy.stats import ttest_rel
 from statsmodels.stats.multitest import multipletests
 import source_mf_results as mfr
 import plots
@@ -39,41 +42,45 @@ subjects['AV'] = info['subjects']['AV']
 mf_params_idx = 1 
 source_rec_params_idx = 0
  
-# Select condition ('rest0', 'rest5', 'pretest', 'posttest')
-condition = 'rest5'
+# Select conditions to contrast ('rest0', 'rest5', 'pretest', 'posttest')
+conditions = ['rest5', 'posttest']  # contrast image: conditions[0] - conditions[1]
+test_variable = 1 # select 0 for H or 1 for M
+
 
 # remove outliers when computing the mean cp for the stc file
 outcoef = 2. 
 
 # Hypothesis testing parameters
 alpha = 0.05
-null_hyp_ttest_1samp = [0.5, 0.0] # null hypothesis for H and M
-cp_tail  = [0, 1] # tail for [c1,c2] in the 1-sample t-test
+cp_tail  = [1, -1] # tail for [c1,c2] in the 1-sample t-test
 correction_multiple_tests = 'fdr' # 'fdr', 'bonferroni' or None
+
+
 
 
 #===============================================================================
 # Functions
 #===============================================================================
 
-def compute_pvalue_t_test_1_sample(samples, h0_val = 0, tail = 0):
+def compute_pvalue_t_test_rel(x, y, tail = 0):
     """
-    Apply 1 sample t test.
+    Apply t test for 2 related samples x and y
     Args:
-        h0_val: value of the mean under the null hypothesis
-        tail:   0 for 2-tail, 1 for 1-tail
+        tail:   0 for 2-tail, +1 or -1 for 1-tail
     """
     # remove outliers
     # outliers = (samples - samples.mean()) > 2*samples.std()
     # samples = samples[~outliers]
 
-    result = ttest_1samp(samples, h0_val)
+    result = ttest_rel(x, y)
     pval   = result.pvalue
     stat   = result.statistic
 
+    # positive statistic: x > y
+    # tail = 1 -> test H1: x>y
+
     if tail!=0:
         pval = 0.5*(1+np.sign(tail)*np.sign(stat)*(pval-1))
-
     return pval
 
 
@@ -100,89 +107,94 @@ def my_std(a,axis=0):
     return y
 
 
-
 #===============================================================================
 # Run
 #===============================================================================
 
 # load log-cumulants
 # array all_log_cumulants: shape (n_subjects, n_labels, n_cumul)
-all_log_cumulants,_ ,subjects_list = \
-    mfr.load_data_groups_subjects(condition, groups, subjects)
+all_log_cumulants_cond_0,_ ,subjects_list = \
+    mfr.load_data_groups_subjects(conditions[0], groups, subjects)
 
-all_log_cumulants = all_log_cumulants[:, :, :2]  # c3 is not used
-n_subjects = all_log_cumulants.shape[0]
-n_labels   = all_log_cumulants.shape[1]
+all_log_cumulants_cond_1,_ ,subjects_list = \
+    mfr.load_data_groups_subjects(conditions[1], groups, subjects)
 
-c1_array   = all_log_cumulants[:, :, 0]
-c2_array   = all_log_cumulants[:, :, 1]
+
+n_subjects = all_log_cumulants_cond_0.shape[0]
+n_labels   = all_log_cumulants_cond_0.shape[1]
+
+c1_array_cond_0   = all_log_cumulants_cond_0[:, :, 0]
+c1_array_cond_1   = all_log_cumulants_cond_1[:, :, 0]
+c2_array_cond_0   = all_log_cumulants_cond_0[:, :, 1].clip(max = 0)
+c2_array_cond_1   = all_log_cumulants_cond_1[:, :, 1].clip(max = 0)
 
 
 #-------------------------------------------------------------------------------
 # Compute p-values
 #-------------------------------------------------------------------------------
-p_vals = np.ones( (n_labels, 2) ) # shape (n_labels, n_cumulants)
+p_vals = np.ones( n_labels ) # shape (n_labels,)
 
 for label in range(n_labels):
-    for cumul_idx, cumul in enumerate([1, 2]):
 
-        signal = 1.0
-        # Invert signal of c2 to obtain M
-        if cumul == 2:
-            signal = -1.0
+	if test_variable == 0:
+		samples_0 = c1_array_cond_0[:, label]
+		samples_1 = c1_array_cond_1[:, label]
 
-        samples = signal*all_log_cumulants[:, label, cumul_idx]
+	if test_variable == 1:
+		samples_0 = -1*c2_array_cond_0[:, label] # invert signal to get M
+		samples_1 = -1*c2_array_cond_1[:, label]
 
-        # Compute and store p-values
-        pval = compute_pvalue_t_test_1_sample(samples,
-                                              null_hyp_ttest_1samp[cumul_idx],
-                                              cp_tail[cumul_idx])
-
-        p_vals[label, cumul_idx] = pval
+	pval = compute_pvalue_t_test_rel(samples_0, samples_1, cp_tail[test_variable])
+	p_vals[label] = pval
+	# # Compute and store p-values
+ #    pval = compute_pvalue_t_test_rel(samples_0, samples_1, cp_tail[test_variable])
+ #    p_vals[label] = pval
 
 
 #-------------------------------------------------------------------------------
 # Apply correction for multiple tests
 #-------------------------------------------------------------------------------
 if correction_multiple_tests is not None:
-    for cumul_idx, cumul in enumerate([1, 2]):
-        # get list of p-values for all labels
-        pvalues = p_vals[:, cumul_idx].copy()
-        # correction
-        if correction_multiple_tests == 'fdr':
-            # - Benjamini/Hochberg  (non-negative) =  'indep' in mne.fdr_correction
-            p_vals[:, cumul_idx] = \
-                multipletests(pvalues, alpha, method = 'fdr_bh')[1]
+    # correction
+    if correction_multiple_tests == 'fdr':
+        # - Benjamini/Hochberg  (non-negative) =  'indep' in mne.fdr_correction
+        p_vals = \
+            multipletests(p_vals, alpha, method = 'fdr_bh')[1]
 
-        elif correction_multiple_tests == 'bonferroni':
-            # bonferroni
-            p_vals[:, cumul_idx] = \
-                multipletests(pvalues, alpha, method = 'bonferroni')[1]
-
-
+    elif correction_multiple_tests == 'bonferroni':
+        # bonferroni
+        p_vals = \
+            multipletests(p_vals, alpha, method = 'bonferroni')[1]
 
 #-------------------------------------------------------------------------------
 # Organize data to plot
 #-------------------------------------------------------------------------------
 
-# means across subjects, removing outliers
-c1_mean = my_mean(all_log_cumulants[:, :, 0], axis = 0, outcoef = outcoef)
-c2_mean = my_mean(all_log_cumulants[:, :, 1], axis = 0, outcoef = outcoef)
+# contrast across subjects, removing outliers
+if test_variable == 0:
+	contrast = my_mean(c1_array_cond_0, axis = 0, outcoef = outcoef) \
+			   - my_mean(c1_array_cond_1, axis = 0, outcoef = outcoef)
+if test_variable == 1:
+	contrast = my_mean(-c2_array_cond_0, axis = 0, outcoef = outcoef) \
+			   - my_mean(-c2_array_cond_1, axis = 0, outcoef = outcoef)
 
 
 # set values that do not passed the test as the value in the null hypothesis
-c1_mean[p_vals[:, 0] >= alpha] =  null_hyp_ttest_1samp[0]
-c2_mean[p_vals[:, 1] >= alpha] =  null_hyp_ttest_1samp[1]
+contrast[p_vals >= alpha] =  0
 
 
 #-------------------------------------------------------------------------------
 # Plot and save
 #-------------------------------------------------------------------------------
-c1_filename = os.path.join('output_images', 'c1_' + condition + '.png')
-c2_filename = os.path.join('output_images', 'c2_' + condition + '.png')
+if test_variable == 0:
+	cumulant_name = 'c1'
+if test_variable == 1:
+	cumulant_name = 'c2'
 
 
-plots.plot_brain(c1_mean, fmin = 0.8, fmax = 1.20, 
-                    png_filename = c1_filename, positive_only = True)
-plots.plot_brain(c2_mean, fmin = 0.00, fmax = 0.03, 
-                    png_filename = c2_filename, positive_only = True)
+filename = '%s_contrast_%s_%s.png'%(cumulant_name, conditions[0], conditions[1])
+filename = os.path.join('output_images', filename)
+
+maxval = np.abs(contrast).max()
+plots.plot_brain(contrast, fmin = -maxval, fmax = maxval, 
+                 png_filename = filename, positive_only = False)
