@@ -34,7 +34,7 @@ import numpy as np
 #-------------------------------------------------------------------------------
 
 # Channel type
-MEG_TYPE = 'mag' # 'mag' or 'grad'
+MEG_TYPE = 'grad' # 'mag' or 'grad'
 
 # Subjects and conditions
 groups   = ['AV'] #, 'V', 'AVr']
