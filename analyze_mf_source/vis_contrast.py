@@ -52,7 +52,7 @@ outcoef = 2.
 
 # Hypothesis testing parameters
 alpha = 0.05
-cp_tail  = [1, -1] # tail for [c1,c2] in the 1-sample t-test
+cp_tail  = [0, 0] # tail for [c1,c2] in the 1-sample t-test
 correction_multiple_tests = 'fdr' # 'fdr', 'bonferroni' or None
 
 
