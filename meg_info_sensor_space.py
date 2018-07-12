@@ -72,22 +72,26 @@ def get_info(dataset_dir = DATASET_DIR):
     dataset_dir_mf_output = os.path.join(project_dir, 'data_mf_out')
 
     # path to subjects data, example: paths_to_subjects['AV']['nc_110174']
-    paths_to_subjects = {}
-    for group in groups:
-        paths_to_subjects[group] = {}
-        for subject in subjects[group]:
-                temp = os.path.join(dataset_dir, 'SSS', group,subject)
-                numeric_folder = os.listdir(temp)[0]
-                paths_to_subjects[group][subject] = os.path.join(temp, numeric_folder)
+    try:
+        paths_to_subjects = {}
+        for group in groups:
+            paths_to_subjects[group] = {}
+            for subject in subjects[group]:
+                    temp = os.path.join(dataset_dir, 'SSS', group,subject)
+                    numeric_folder = os.listdir(temp)[0]
+                    paths_to_subjects[group][subject] = os.path.join(temp, numeric_folder)
 
-    # path to events data, example: paths_to_events['AV']['nc_110174']
-    paths_to_events = {}
-    for group in groups:
-        paths_to_events[group] = {}
-        for subject in subjects[group]:
-                paths_to_events[group][subject] = \
-                    os.path.join(paths_to_subjects[group][subject],'events','raw')
 
+        # path to events data, example: paths_to_events['AV']['nc_110174']
+        paths_to_events = {}
+        for group in groups:
+            paths_to_events[group] = {}
+            for subject in subjects[group]:
+                    paths_to_events[group][subject] = \
+                        os.path.join(paths_to_subjects[group][subject],'events','raw')
+    except:
+        paths_to_subjects = {}
+        paths_to_events = {}
 
     # path to subjects output data, example: paths_to_subjects_output['AV']['nc_110174']
     paths_to_subjects_output = {}

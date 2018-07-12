@@ -1,5 +1,5 @@
 """
-Provides a function to load MF results on source space.
+Provides functions to load MF results on source space.
 """
 
 import os
@@ -17,7 +17,7 @@ def load_data(group, subject, condition,
     group = 'AV', 'V' or 'AVr'
     subject = one of the subjects in the given group
     condition = 'rest0', 'rest5', 'pretest', 'posttest'
-    param_idx = index of MF parameters
+    mf_param_idx = index of MF parameters
     source_rec_param_idx = index of source reconstruction parameters
     """
     data_dir = info['paths_to_subjects_output'][group][subject]
