@@ -34,14 +34,14 @@ import numpy as np
 #-------------------------------------------------------------------------------
 
 # Channel type
-MEG_TYPE = 'grad' # 'mag' or 'grad'
+MEG_TYPE = 'mag' # 'mag' or 'grad'
 
 # Subjects and conditions
-groups   = ['AV'] #, 'V', 'AVr']
+groups   = ['V', 'AVr'] #, 'V', 'AVr']
 subjects = {}
-subjects['AV'] = info['subjects']['AV']
-# subjects['V'] = info['subjects']['V']
-# subjects['AVr'] = info['subjects']['AVr']
+# subjects['AV'] = info['subjects']['AV']
+subjects['V'] = info['subjects']['V']
+subjects['AVr'] = info['subjects']['AVr']
 conditions  = info['sessions']
 
 
