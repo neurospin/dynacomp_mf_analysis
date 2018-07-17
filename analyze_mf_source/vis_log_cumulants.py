@@ -31,16 +31,18 @@ import meg_info
 info   = meg_info.get_info()
 
 # Select groups and subjects
-groups = ['AV']
+groups = ['AV', 'V', 'AVr']
 subjects = {}
 subjects['AV'] = info['subjects']['AV']
+subjects['V'] = info['subjects']['V']
+subjects['AVr'] = info['subjects']['AVr']
 
 # Select MF parameters and source reconstruction parameters
 mf_params_idx = 1 
 source_rec_params_idx = 0
  
 # Select condition ('rest0', 'rest5', 'pretest', 'posttest')
-condition = 'rest5'
+condition = 'posttest'
 
 # remove outliers when computing the mean cp for the stc file
 outcoef = 2. 
@@ -108,7 +110,9 @@ def my_std(a,axis=0):
 # load log-cumulants
 # array all_log_cumulants: shape (n_subjects, n_labels, n_cumul)
 all_log_cumulants,_ ,subjects_list = \
-    mfr.load_data_groups_subjects(condition, groups, subjects)
+    mfr.load_data_groups_subjects(condition, groups, subjects,
+                                  mf_param_idx = mf_params_idx, 
+                                  source_rec_param_idx = source_rec_params_idx)
 
 all_log_cumulants = all_log_cumulants[:, :, :2]  # c3 is not used
 n_subjects = all_log_cumulants.shape[0]
@@ -178,11 +182,11 @@ c2_mean[p_vals[:, 1] >= alpha] =  null_hyp_ttest_1samp[1]
 #-------------------------------------------------------------------------------
 # Plot and save
 #-------------------------------------------------------------------------------
-c1_filename = os.path.join('output_images', 'c1_' + condition + '.png')
-c2_filename = os.path.join('output_images', 'c2_' + condition + '.png')
+c1_filename = os.path.join('output_images', 'c1_%s_mf_%d_rec_%d.png'%(condition, mf_params_idx, source_rec_params_idx))
+c2_filename = os.path.join('output_images', 'c2_%s_mf_%d_rec_%d.png'%(condition, mf_params_idx, source_rec_params_idx))
 
 
 plots.plot_brain(c1_mean, fmin = 0.8, fmax = 1.20, 
                     png_filename = c1_filename, positive_only = True)
-plots.plot_brain(c2_mean, fmin = 0.00, fmax = 0.03, 
+plots.plot_brain(-c2_mean, fmin = 0.00, fmax = 0.03, 
                     png_filename = c2_filename, positive_only = True)

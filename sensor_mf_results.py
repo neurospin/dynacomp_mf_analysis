@@ -30,12 +30,17 @@ def load_data(group, subject, condition,
         log_cumulants = f['log_cumulants'][:]
         cumulants = f['cumulants'][:]
         params = f['params'].value
+        channels_picks = f['channels_picks'].value
+        channels_names = [name.decode('ascii') for name in f['picks_ch_names'][:].squeeze()]
 
-    return log_cumulants, cumulants, params
+    ch_name2index  = dict( zip( channels_names, list(range(len(channels_picks))) ) )
+
+
+    return log_cumulants, cumulants, params, channels_picks, channels_names, ch_name2index
 
 
 def load_data_groups_subjects(condition,
-                              groups = ['AV'],
+                              groups = ['AV', 'V', 'AVr'],
                               subjects = info['subjects'],
                               mf_param_idx = 1,
                               max_j = 14,
@@ -63,9 +68,10 @@ def load_data_groups_subjects(condition,
         for ss in subjects[gg]:
             subjects_list.append((gg, ss))
 
-            log_cumulants, cumulants, params = load_data(gg, ss, condition, 
-                                                         mf_param_idx ,
-                                                         channel_type)
+            log_cumulants, cumulants, params, channels_picks, channels_names, ch_name2index = \
+                                                        load_data(gg, ss, condition, 
+                                                                  mf_param_idx ,
+                                                                  channel_type)
 
             all_log_cumulants[idx, :, :] = log_cumulants
             all_cumulants[idx, :, :, :max_j] = cumulants[:,:,:max_j]
@@ -73,13 +79,14 @@ def load_data_groups_subjects(condition,
             idx += 1
 
 
-    return all_log_cumulants, all_cumulants, subjects_list, params
+    return all_log_cumulants, all_cumulants, subjects_list, params, channels_picks, channels_names, ch_name2index
 
 if __name__ == '__main__':
     group = info['groups'][0]
     subject = info['subjects'][group][0]
     condition = 'rest0'
 
-    log_cumulants, cumulants, params = load_data(group, subject, condition)
+    log_cumulants, cumulants, params, channels_picks, channels_names, ch_name2index = load_data(group, subject, condition)
         
-    all_log_cumulants, all_cumulants, subjects_list, params = load_data_groups_subjects('rest0')
+    all_log_cumulants, all_cumulants, subjects_list, params, channels_picks, channels_names, ch_name2index =\
+         load_data_groups_subjects('rest0')
