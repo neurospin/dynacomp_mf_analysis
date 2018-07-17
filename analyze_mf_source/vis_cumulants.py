@@ -22,13 +22,15 @@ import meg_info
 info   = meg_info.get_info()
 
 # Select groups and subjects
-groups = ['AV']
+groups = ['AV', 'V', 'AVr']
 subjects = {}
 subjects['AV'] = info['subjects']['AV']
+subjects['V'] = info['subjects']['V']
+subjects['AVr'] = info['subjects']['AVr']
 
 # Select MF parameters and source reconstruction parameters
-mf_params_idx = 1 
-source_rec_params_idx = 0
+mf_params_idx = 3
+source_rec_params_idx = 1
  
 # Select conditions ('rest0', 'rest5', 'pretest', 'posttest')
 # and cortical labels
@@ -45,8 +47,10 @@ def run():
         for cond_idx, condition in enumerate(conditions):
             # load cumulants
             # array all_cumulants: shape (n_subjects, n_labels, n_cumul, max_j)
-            _, all_cumulants ,subjects_list = \
-                mfr.load_data_groups_subjects(condition, groups, subjects)
+            all_log_cumulants, all_cumulants ,subjects_list = \
+                mfr.load_data_groups_subjects(condition, groups, subjects,
+                                              mf_param_idx = mf_params_idx, 
+                                              source_rec_param_idx = source_rec_params_idx)
 
             color_idx = 0
             for label, region in zip(labels, labels_region):
@@ -81,8 +85,27 @@ def run():
                 ax.set_title(condition)
                 color_idx += 1
 
+
+
+    all_log_cumulants_rest, _, _ = \
+                mfr.load_data_groups_subjects('rest5', groups, subjects,
+                                              mf_param_idx = mf_params_idx, 
+                                              source_rec_param_idx = source_rec_params_idx)
+
+    all_log_cumulants_task, _, _  = \
+                mfr.load_data_groups_subjects('posttest', groups, subjects,
+                                              mf_param_idx = mf_params_idx, 
+                                              source_rec_param_idx = source_rec_params_idx)
+
+
+    c2_rest_occ = all_log_cumulants_rest[:, 20, 1]
+    c2_task_occ = all_log_cumulants_task[:, 20, 1]
             
-    plt.show()
+    return c2_rest_occ, c2_task_occ
+
+    
 
 if __name__ == '__main__':
-    run()
+    c2_rest_occ, c2_task_occ = run()
+
+    plt.show()

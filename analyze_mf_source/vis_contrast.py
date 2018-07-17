@@ -3,11 +3,11 @@ Performs the following tests:
 
 - For H:
 	H0:  Hrest = Htask
-	H1:  Hrest > Htask
+	H1:  Hrest != Htask
 
 - For M:
 	H0:  Mrest = Mtask
-	H1:  Mrest < Mtask
+	H1:  Mrest != Mtask
 
 !!! Important:
 
@@ -20,10 +20,12 @@ from os.path import dirname, abspath
 sys.path.insert(0, dirname(dirname(abspath(__file__))))
 
 import numpy as np
-from scipy.stats import ttest_rel
+from scipy.stats import ttest_rel, ttest_ind, wilcoxon, ttest_1samp
 from statsmodels.stats.multitest import multipletests
 import source_mf_results as mfr
 import plots
+
+import matplotlib.pyplot as plt
 
 
 #===============================================================================
@@ -34,9 +36,12 @@ import meg_info
 info   = meg_info.get_info()
 
 # Select groups and subjects
-groups = ['AV']
+groups = ['AV', 'V']
 subjects = {}
 subjects['AV'] = info['subjects']['AV']
+subjects['V'] = info['subjects']['V']
+subjects['AVr'] = info['subjects']['AVr']
+
 
 # Select MF parameters and source reconstruction parameters
 mf_params_idx = 1 
@@ -48,7 +53,7 @@ test_variable = 1 # select 0 for H or 1 for M
 
 
 # remove outliers when computing the mean cp for the stc file
-outcoef = 2. 
+outcoef = 2. #2. 
 
 # Hypothesis testing parameters
 alpha = 0.05
@@ -62,25 +67,40 @@ correction_multiple_tests = 'fdr' # 'fdr', 'bonferroni' or None
 # Functions
 #===============================================================================
 
-def compute_pvalue_t_test_rel(x, y, tail = 0):
+def compute_pvalue_t_test_rel(x, y, outcoef=None):
     """
     Apply t test for 2 related samples x and y
     Args:
         tail:   0 for 2-tail, +1 or -1 for 1-tail
     """
-    # remove outliers
+    
     # outliers = (samples - samples.mean()) > 2*samples.std()
     # samples = samples[~outliers]
 
-    result = ttest_rel(x, y)
+    # # remove outliers
+    # tmp1 = x
+    # tmp2 = y
+
+    # if outcoef is not None:
+    #     outliers1= np.abs(tmp1-my_mean(tmp1)) > outcoef*my_std(tmp1)
+    #     tmp1= tmp1[~outliers1]
+    #     outliers2= np.abs(tmp2-my_mean(tmp2)) > outcoef*my_std(tmp2)
+    #     tmp2= tmp2[~outliers2]
+    
+    # t, pval = ttest_ind(tmp2,tmp1) # test tmp2-tmp1 (ie b-a)
+
+    # t, pval = ttest_1samp(x - y, 0)
+
+    result = ttest_ind(x, y)
     pval   = result.pvalue
     stat   = result.statistic
 
     # positive statistic: x > y
     # tail = 1 -> test H1: x>y
 
-    if tail!=0:
-        pval = 0.5*(1+np.sign(tail)*np.sign(stat)*(pval-1))
+    # if tail!=0:
+    #     pval = 0.5*(1+np.sign(tail)*np.sign(stat)*(pval-1))
+
     return pval
 
 
@@ -114,11 +134,15 @@ def my_std(a,axis=0):
 # load log-cumulants
 # array all_log_cumulants: shape (n_subjects, n_labels, n_cumul)
 all_log_cumulants_cond_0,_ ,subjects_list = \
-    mfr.load_data_groups_subjects(conditions[0], groups, subjects)
+    mfr.load_data_groups_subjects(conditions[0], groups, subjects,
+                                  mf_param_idx = mf_params_idx, 
+                                  source_rec_param_idx = source_rec_params_idx)
 
 all_log_cumulants_cond_1,_ ,subjects_list = \
-    mfr.load_data_groups_subjects(conditions[1], groups, subjects)
-
+    mfr.load_data_groups_subjects(conditions[1], groups, subjects,
+                                  mf_param_idx = mf_params_idx, 
+                                  source_rec_param_idx = source_rec_params_idx)
+ 
 
 n_subjects = all_log_cumulants_cond_0.shape[0]
 n_labels   = all_log_cumulants_cond_0.shape[1]
@@ -144,11 +168,8 @@ for label in range(n_labels):
 		samples_0 = -1*c2_array_cond_0[:, label] # invert signal to get M
 		samples_1 = -1*c2_array_cond_1[:, label]
 
-	pval = compute_pvalue_t_test_rel(samples_0, samples_1, cp_tail[test_variable])
+	pval = compute_pvalue_t_test_rel(samples_0, samples_1, outcoef)
 	p_vals[label] = pval
-	# # Compute and store p-values
- #    pval = compute_pvalue_t_test_rel(samples_0, samples_1, cp_tail[test_variable])
- #    p_vals[label] = pval
 
 
 #-------------------------------------------------------------------------------
@@ -192,7 +213,7 @@ if test_variable == 1:
 	cumulant_name = 'c2'
 
 
-filename = '%s_contrast_%s_%s.png'%(cumulant_name, conditions[0], conditions[1])
+filename = '%s_contrast_%s_%s_mf_%d_rec_%d.png'%(cumulant_name, conditions[0], conditions[1], mf_params_idx, source_rec_params_idx)
 filename = os.path.join('output_images', filename)
 
 maxval = np.abs(contrast).max()
