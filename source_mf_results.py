@@ -12,7 +12,7 @@ info = meg_info.get_info()
 def load_data(group, subject, condition, 
               mf_param_idx = 1, 
               source_rec_param_idx = 0,
-              time_str = '20180710'):
+              time_str = '20180713'):
     """
     group = 'AV', 'V' or 'AVr'
     subject = one of the subjects in the given group
@@ -39,7 +39,7 @@ def load_data_groups_subjects(condition,
                               subjects = info['subjects'],
                               mf_param_idx = 1, 
                               source_rec_param_idx = 0,
-                              time_str = '20180710',
+                              time_str = '20180713',
                               n_labels = 138,
                               n_cumul = 3,
                               max_j = 13):

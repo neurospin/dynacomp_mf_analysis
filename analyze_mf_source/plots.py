@@ -65,7 +65,9 @@ def plot_brain(data, fmin = -1.0, fmax = 1.0, png_filename = None, positive_only
     t=0.
 
     if not positive_only:
-        cm = mne.viz.mne_analyze_colormap([5, 10, 15], format = 'mayavi')
+        #cm = mne.viz.mne_analyze_colormap([5, 10, 15], format = 'mayavi')
+        cm = mne.viz.mne_analyze_colormap([0.0, fmax/2.0, fmax], format = 'mayavi')
+
     else:
         colors= [(105./255., 105./255.,105./255.),
                  (105./255., 105./255.,105./255.),
@@ -83,7 +85,7 @@ def plot_brain(data, fmin = -1.0, fmax = 1.0, png_filename = None, positive_only
 
     try:
         if not positive_only:
-            brain.scale_data_colormap(fmin=fmin, fmid=fmid, fmax=fmax, transparent=False)
+            # brain.scale_data_colormap(fmin=fmin, fmid=fmid, fmax=fmax, transparent=False)
             # Set transparency around 0
             for h in ['lh', 'rh']:
                 data = brain.data_dict[h]

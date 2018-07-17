@@ -2,12 +2,12 @@
 Performs the following tests:
 
 - For H:
-	H0:  Hrest = Htask
-	H1:  Hrest != Htask
+    H0:  Hrest = Htask
+    H1:  Hrest != Htask
 
 - For M:
-	H0:  Mrest = Mtask
-	H1:  Mrest != Mtask
+    H0:  Mrest = Mtask
+    H1:  Mrest != Mtask
 
 !!! Important:
 
@@ -20,7 +20,7 @@ from os.path import dirname, abspath
 sys.path.insert(0, dirname(dirname(abspath(__file__))))
 
 import numpy as np
-from scipy.stats import ttest_rel, ttest_ind, wilcoxon, ttest_1samp
+from scipy.stats import ttest_1samp # ttest_rel, ttest_ind, wilcoxon
 from statsmodels.stats.multitest import multipletests
 import source_mf_results as mfr
 import plots
@@ -36,7 +36,7 @@ import meg_info
 info   = meg_info.get_info()
 
 # Select groups and subjects
-groups = ['AV', 'V']
+groups = ['AV', 'V', 'AVr']
 subjects = {}
 subjects['AV'] = info['subjects']['AV']
 subjects['V'] = info['subjects']['V']
@@ -48,8 +48,8 @@ mf_params_idx = 1
 source_rec_params_idx = 0
  
 # Select conditions to contrast ('rest0', 'rest5', 'pretest', 'posttest')
-conditions = ['rest5', 'posttest']  # contrast image: conditions[0] - conditions[1]
-test_variable = 1 # select 0 for H or 1 for M
+conditions = ['pretest', 'posttest']  # contrast image: conditions[0] - conditions[1]
+test_variable = 0 # select 0 for H or 1 for M
 
 
 # remove outliers when computing the mean cp for the stc file
@@ -67,7 +67,7 @@ correction_multiple_tests = 'fdr' # 'fdr', 'bonferroni' or None
 # Functions
 #===============================================================================
 
-def compute_pvalue_t_test_rel(x, y, outcoef=None):
+def compute_pvalue(x, y, outcoef=None):
     """
     Apply t test for 2 related samples x and y
     Args:
@@ -91,9 +91,18 @@ def compute_pvalue_t_test_rel(x, y, outcoef=None):
 
     # t, pval = ttest_1samp(x - y, 0)
 
-    result = ttest_ind(x, y)
+
+    diff = y - x
+    outliers = np.abs(diff - my_mean(diff)) > outcoef*my_std(diff)
+    diff  = diff[~outliers]
+
+    result = ttest_1samp(diff, 0)
     pval   = result.pvalue
     stat   = result.statistic
+
+    # result = wilcoxon(diff)
+    # pval   = result.pvalue
+    # stat   = result.statistic
 
     # positive statistic: x > y
     # tail = 1 -> test H1: x>y
@@ -160,16 +169,16 @@ p_vals = np.ones( n_labels ) # shape (n_labels,)
 
 for label in range(n_labels):
 
-	if test_variable == 0:
-		samples_0 = c1_array_cond_0[:, label]
-		samples_1 = c1_array_cond_1[:, label]
+    if test_variable == 0:
+        samples_0 = c1_array_cond_0[:, label]
+        samples_1 = c1_array_cond_1[:, label]
 
-	if test_variable == 1:
-		samples_0 = -1*c2_array_cond_0[:, label] # invert signal to get M
-		samples_1 = -1*c2_array_cond_1[:, label]
+    if test_variable == 1:
+        samples_0 = -1*c2_array_cond_0[:, label] # invert signal to get M
+        samples_1 = -1*c2_array_cond_1[:, label]
 
-	pval = compute_pvalue_t_test_rel(samples_0, samples_1, outcoef)
-	p_vals[label] = pval
+    pval = compute_pvalue(samples_0, samples_1, outcoef)
+    p_vals[label] = pval
 
 
 #-------------------------------------------------------------------------------
@@ -193,12 +202,13 @@ if correction_multiple_tests is not None:
 
 # contrast across subjects, removing outliers
 if test_variable == 0:
-	contrast = my_mean(c1_array_cond_0, axis = 0, outcoef = outcoef) \
-			   - my_mean(c1_array_cond_1, axis = 0, outcoef = outcoef)
+    contrast = my_mean(c1_array_cond_0, axis = 0, outcoef = outcoef) \
+               - my_mean(c1_array_cond_1, axis = 0, outcoef = outcoef)
+    contrast = -1*contrast
 if test_variable == 1:
-	contrast = my_mean(-c2_array_cond_0, axis = 0, outcoef = outcoef) \
-			   - my_mean(-c2_array_cond_1, axis = 0, outcoef = outcoef)
-
+    contrast = my_mean(-c2_array_cond_0, axis = 0, outcoef = outcoef)\
+     - my_mean(-c2_array_cond_1, axis = 0, outcoef = outcoef)
+    contrast = -1*contrast
 
 # set values that do not passed the test as the value in the null hypothesis
 contrast[p_vals >= alpha] =  0
@@ -208,9 +218,9 @@ contrast[p_vals >= alpha] =  0
 # Plot and save
 #-------------------------------------------------------------------------------
 if test_variable == 0:
-	cumulant_name = 'c1'
+    cumulant_name = 'c1'
 if test_variable == 1:
-	cumulant_name = 'c2'
+    cumulant_name = 'c2'
 
 
 filename = '%s_contrast_%s_%s_mf_%d_rec_%d.png'%(cumulant_name, conditions[0], conditions[1], mf_params_idx, source_rec_params_idx)
@@ -219,3 +229,5 @@ filename = os.path.join('output_images', filename)
 maxval = np.abs(contrast).max()
 plots.plot_brain(contrast, fmin = -maxval, fmax = maxval, 
                  png_filename = filename, positive_only = False)
+# plots.plot_brain(contrast, fmin = -0.116, fmax = 0.116, 
+#                  png_filename = filename, positive_only = False)
