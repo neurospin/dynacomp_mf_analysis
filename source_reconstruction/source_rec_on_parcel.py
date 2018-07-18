@@ -47,11 +47,11 @@ params = source_reconstruction_params.get_params()
 #-------------------------------------------------------------------------------
 # Select subjects
 #-------------------------------------------------------------------------------
-groups   = ['AV'] #, 'V', 'AVr']
+groups   = ['V', 'AVr'] #, 'V', 'AVr']
 subjects = {}
-subjects['AV'] = info['subjects']['AV']
-# subjects['V'] = info['subjects']['V']
-# subjects['AVr'] = info['subjects']['AVr']
+# subjects['AV'] = info['subjects']['AV']
+subjects['V'] = info['subjects']['V']
+subjects['AVr'] = info['subjects']['AVr']
 
 #-------------------------------------------------------------------------------
 # Other params and functions

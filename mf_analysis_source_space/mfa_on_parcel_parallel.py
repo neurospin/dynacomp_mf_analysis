@@ -29,7 +29,7 @@ project_dir = dirname(dirname(abspath(__file__)))
 sys.path.insert(0, project_dir)
 
 # time string
-time_str = '20180710'
+time_str = '20180713'
 
 # Raw data folder name
 raw_dir_name = 'raw_on_parc_400Hz_'+ time_str +'_rec_param_1'
@@ -60,12 +60,12 @@ def main():
     #---------------------------------------------------------------------------
 
     # groups and subjects
-    groups   = ['AV']
-    # groups   = ['AV', 'V', 'AVr']
+    groups   = ['AV', 'V', 'AVr']
+    # groups   = ['V', 'AVr']
     subjects = {}
     subjects['AV'] = info['subjects']['AV']
-    # subjects['V'] = info['subjects']['V']
-    # subjects['AVr'] = info['subjects']['AVr']
+    subjects['V'] = info['subjects']['V']
+    subjects['AVr'] = info['subjects']['AVr']
     conditions  = info['sessions']
     
 

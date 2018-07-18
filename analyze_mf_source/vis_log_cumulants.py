@@ -22,6 +22,7 @@ from statsmodels.stats.multitest import multipletests
 import source_mf_results as mfr
 import plots
 
+# from mne.stats import fdr_correction
 
 #===============================================================================
 # Global parameters 
@@ -154,9 +155,11 @@ if correction_multiple_tests is not None:
         pvalues = p_vals[:, cumul_idx].copy()
         # correction
         if correction_multiple_tests == 'fdr':
-            # - Benjamini/Hochberg  (non-negative) =  'indep' in mne.fdr_correction
+            # - Benjamini/Hochberg  (non-negative) =  'indep' in mne.stats.fdr_correction
             p_vals[:, cumul_idx] = \
                 multipletests(pvalues, alpha, method = 'fdr_bh')[1]
+
+            # _, lalala = fdr_correction(pvalues, alpha, method = 'indep')
 
         elif correction_multiple_tests == 'bonferroni':
             # bonferroni
