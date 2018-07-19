@@ -82,7 +82,8 @@ def load_logcumul_for_classification(conditions_0, conditions_1,
                                      time_str = '20180713',
                                      n_labels = 138,
                                      n_cumul = 3,
-                                     max_j = 13):
+                                     max_j = 13,
+                                     clip_c2 = True):
     """
     conditions_0 : conditions for classif. label 0 (e.g. ['rest0', 'rest5'])
     conditions_1 : conditions for classif. label 1 (e.g. ['pretest', 'posttest'])
@@ -120,14 +121,17 @@ def load_logcumul_for_classification(conditions_0, conditions_1,
         X_cond = ()
         for c_idx in log_cumulants:
             data = all_log_cumulants[:, :, c_idx]  # shape (n_subjects, n_cortical_labels)
+
+            if clip_c2 and c_idx == 1:
+                data = data.clip(max = 0)
+
             X_cond = X_cond + (data,)
 
-        X_cond = np.vstack   # stacking features -> (n_subjects, n_cortical_labels*len(log_cumulants))
+        X_cond = np.hstack(X_cond)   # stacking features -> (n_subjects, n_cortical_labels*len(log_cumulants))
 
         X0_tuple = X0_tuple + (X_cond,)
 
-
-    X0 = np.hstack(X0_tuple) # stacking samples (n_subjects*len(conditions_0), n_cortical_labels*len(log_cumulants))
+    X0 = np.vstack(X0_tuple) # stacking samples (n_subjects*len(conditions_0), n_cortical_labels*len(log_cumulants))
     y0 = np.zeros(X0.shape[0])
 
     ###
@@ -155,12 +159,17 @@ def load_logcumul_for_classification(conditions_0, conditions_1,
         X_cond = ()
         for c_idx in log_cumulants:
             data = all_log_cumulants[:, :, c_idx]  # shape (n_subjects, n_cortical_labels)
-            X_cond = X_cond + (data,)                                                 
-        X_cond = np.vstack   # stacking features -> (n_subjects, n_cortical_labels*len(log_cumulants))
+
+            if clip_c2 and c_idx == 1:
+                data = data.clip(max = 0)
+
+            X_cond = X_cond + (data,)    
+
+        X_cond = np.hstack(X_cond)   # stacking features -> (n_subjects, n_cortical_labels*len(log_cumulants))
 
         X1_tuple = X1_tuple + (X_cond,)
-    X1 = np.hstack(X1_tuple) # stacking samples (n_subjects*len(conditions_0), n_cortical_labels*len(log_cumulants))
-    y1 = np.zeros(X1.shape[0])
+    X1 = np.vstack(X1_tuple) # stacking samples (n_subjects*len(conditions_0), n_cortical_labels*len(log_cumulants))
+    y1 = np.ones(X1.shape[0])
 
 
     ##
@@ -173,7 +182,7 @@ def load_logcumul_for_classification(conditions_0, conditions_1,
     groups_idx   = np.array( [get_subject_group_idx(ss) for ss in subjects_classif]  )
 
 
-    return X, y, subjects_idx, groups_idx
+    return X, y, subjects_idx, groups_idx, subjects_list
 
 
 
