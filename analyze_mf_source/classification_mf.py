@@ -34,6 +34,7 @@ SAVE             = False
 # Global parameters 
 #===============================================================================
 # Load info
+
 import meg_info
 info   = meg_info.get_info()
 
@@ -60,7 +61,7 @@ conditions_1 = ['posttest']
 # Classification parameters 
 #===============================================================================
 # Choose classifier
-classifier_name_list = ['linear_svm']
+classifier_name_list = ['linear_svm', 'random_forest', 'linear_svm_scaled']
 
 # Define cross validation scheme
 n_splits   = 30
@@ -71,8 +72,8 @@ scoring    = ['accuracy']
 # Select classifier
 for classifier_name in classifier_name_list:
     # Select MF parameters and source reconstruction parameters
-    for mf_params_idx in [1]:    # 0, 1, 2 or 3 
-        for source_rec_params_idx in [0]:  # 0 or 1
+    for mf_params_idx in [1, 2, 3]:    # 0, 1, 2 or 3 
+        for source_rec_params_idx in [0, 1]:  # 0 or 1
 
             # Cumulants used for classification
             for log_cumulants in [[0]]:  # [0, 1], [0] or [1]
