@@ -87,7 +87,8 @@ def load_logcumul_for_classification(conditions_0, conditions_1,
     """
     conditions_0 : conditions for classif. label 0 (e.g. ['rest0', 'rest5'])
     conditions_1 : conditions for classif. label 1 (e.g. ['pretest', 'posttest'])
-    log_cumulants: log_cumulants to use, [0] for c1 only, [1] for c2 only, [0, 1] for c1 and c2
+    log_cumulants: log_cumulants to use, [0] for c1 only, [1] for c2 only, [0, 1] for c1 and c2;
+                   put -1 instead of 1 to get average of C2(j) instead of c2
 
     returns:
     X: (n_samples, n_features)
@@ -104,7 +105,7 @@ def load_logcumul_for_classification(conditions_0, conditions_1,
     subjects_0_idx = []
     for cond in conditions_0:
         # all_log_cumulants: 
-        all_log_cumulants, _, subjects_list = \
+        all_log_cumulants, all_cumulants, subjects_list = \
                     load_data_groups_subjects(cond,
                                             groups = groups,
                                             subjects = subjects,
@@ -120,10 +121,19 @@ def load_logcumul_for_classification(conditions_0, conditions_1,
 
         X_cond = ()
         for c_idx in log_cumulants:
-            data = all_log_cumulants[:, :, c_idx]  # shape (n_subjects, n_cortical_labels)
+            if c_idx >= 0:
+                data = all_log_cumulants[:, :, c_idx]  # shape (n_subjects, n_cortical_labels)
 
-            if clip_c2 and c_idx == 1:
-                data = data.clip(max = 0)
+                if clip_c2 and c_idx == 1:
+                    data = data.clip(max = 0)
+
+            elif c_idx == -1:
+                data = (all_cumulants[:, :, 1, 7:12]).mean(axis=2)
+            elif c_idx == -2:
+                data = (all_cumulants[:, :, 1, 7:12]).max(axis=2)
+            elif c_idx == -3:
+                data = (all_cumulants[:, :, 1, 7:12]).max(axis=2) \
+                       -(all_cumulants[:, :, 1, 7:12]).min(axis=2)
 
             X_cond = X_cond + (data,)
 
@@ -142,7 +152,7 @@ def load_logcumul_for_classification(conditions_0, conditions_1,
     subjects_1_idx = []
     for cond in conditions_1:
         # all_log_cumulants: 
-        all_log_cumulants, _, subjects_list = \
+        all_log_cumulants, all_cumulants, subjects_list = \
                     load_data_groups_subjects(cond,
                                             groups = groups,
                                             subjects = subjects,
@@ -158,10 +168,19 @@ def load_logcumul_for_classification(conditions_0, conditions_1,
 
         X_cond = ()
         for c_idx in log_cumulants:
-            data = all_log_cumulants[:, :, c_idx]  # shape (n_subjects, n_cortical_labels)
+            if c_idx >= 0:
+                data = all_log_cumulants[:, :, c_idx]  # shape (n_subjects, n_cortical_labels)
 
-            if clip_c2 and c_idx == 1:
-                data = data.clip(max = 0)
+                if clip_c2 and c_idx == 1:
+                    data = data.clip(max = 0)
+            elif c_idx == -1:
+                data = (all_cumulants[:, :, 1, 7:12]).mean(axis=2)
+            elif c_idx == -2:
+                data = (all_cumulants[:, :, 1, 7:12]).max(axis=2)
+            elif c_idx == -3:
+                data = (all_cumulants[:, :, 1, 7:12]).max(axis=2) \
+                       -(all_cumulants[:, :, 1, 7:12]).min(axis=2)
+
 
             X_cond = X_cond + (data,)    
 

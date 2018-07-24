@@ -39,7 +39,7 @@ rest_condition = 'rest5'
 task_condition = 'posttest'
 
 # Select MF parameters and source reconstruction parameters
-mf_params_idx = 2
+mf_params_idx = 0
 
 # Load cumulants and log-cumulants
 all_log_cumulants_rest, all_cumulants_rest, subjects_list, params, _, _, _ = \
@@ -101,8 +101,8 @@ avg_cumulants_task = all_cumulants_task.mean(axis = 0)
 
 
 # compare average of C_2(j) over [j1=9, j2=13]
-avg_cumulants_rest_9_13 = (avg_cumulants_rest[:,:,9:14]).mean(axis = 2)
-avg_cumulants_task_9_13 = (avg_cumulants_task[:,:,9:14]).mean(axis = 2)
+avg_cumulants_rest_9_13 = (avg_cumulants_rest[:,:,8:13]).max(axis = 2)
+avg_cumulants_task_9_13 = (avg_cumulants_task[:,:,8:13]).max(axis = 2)
 
 vmin = np.min(avg_cumulants_task_9_13[:, 1])
 vmax = np.max(avg_cumulants_task_9_13[:, 1])
