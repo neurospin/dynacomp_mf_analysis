@@ -1,3 +1,8 @@
+import sys, os
+from os.path import dirname, abspath
+# Add parent dir to path
+sys.path.insert(0, dirname(dirname(abspath(__file__))))
+
 import numpy as np
 import mfanalysis as mf
 import matplotlib
@@ -16,8 +21,6 @@ import visualization_utils as v_utils
 import sensor_mf_results as mfr
 
 matplotlib.rcParams.update({'errorbar.capsize': 2})
-
-
 
 #===============================================================================
 # Global parameters 
@@ -138,9 +141,9 @@ v_utils.plot_data_topo(H_diff, pos, title = '(H_rest - H_task) tested for H_task
 #-------------------------------------------------------------------------------
 
 # compute averages across subjects
-avg_C2j_rest = all_cumulants_rest[:,:,:,9:14].mean(axis = 3)
+avg_C2j_rest = all_cumulants_rest[:,:,:,9:14].max(axis = 3)
 avg_C2j_rest = avg_C2j_rest[:,:,1]   # shape (n_subjects, n_sensors)
-avg_C2j_task = all_cumulants_task[:,:,:,9:14].mean(axis = 3)
+avg_C2j_task = all_cumulants_task[:,:,:,9:14].max(axis = 3)
 avg_C2j_task = avg_C2j_task[:,:,1]   # shape (n_subjects, n_sensors)
 
 

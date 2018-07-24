@@ -44,10 +44,11 @@ subjects['AVr'] = info['subjects']['AVr']
 
 
 # Select MF parameters and source reconstruction parameters
-mf_params_idx = 1 
+mf_params_idx = 3
 source_rec_params_idx = 0
  
 # Select conditions to contrast ('rest0', 'rest5', 'pretest', 'posttest')
+
 conditions = ['pretest', 'posttest']  # contrast image: conditions[0] - conditions[1]
 test_variable = 1 # select 0 for H or 1 for M
 
@@ -226,8 +227,8 @@ if test_variable == 1:
 filename = '%s_contrast_%s_%s_mf_%d_rec_%d.png'%(cumulant_name, conditions[0], conditions[1], mf_params_idx, source_rec_params_idx)
 filename = os.path.join('output_images', filename)
 
-maxval = np.abs(contrast).max()
-plots.plot_brain(contrast, fmin = -maxval, fmax = maxval, 
-                 png_filename = filename, positive_only = False)
-# plots.plot_brain(contrast, fmin = -0.116, fmax = 0.116, 
+# maxval = np.abs(contrast).max()
+# plots.plot_brain(contrast, fmin = -maxval, fmax = maxval, 
 #                  png_filename = filename, positive_only = False)
+plots.plot_brain(contrast, fmin = -0.116, fmax = 0.116, 
+                 png_filename = filename, positive_only = False)
