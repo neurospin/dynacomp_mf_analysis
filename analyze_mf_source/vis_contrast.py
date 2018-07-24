@@ -36,10 +36,10 @@ import meg_info
 info   = meg_info.get_info()
 
 # Select groups and subjects
-groups = ['AV', 'V', 'AVr']
+groups = ['AVr']#, 'V', 'AVr']
 subjects = {}
-subjects['AV'] = info['subjects']['AV']
-subjects['V'] = info['subjects']['V']
+# subjects['AV'] = info['subjects']['AV']
+# subjects['V'] = info['subjects']['V']
 subjects['AVr'] = info['subjects']['AVr']
 
 
@@ -49,7 +49,7 @@ source_rec_params_idx = 0
  
 # Select conditions to contrast ('rest0', 'rest5', 'pretest', 'posttest')
 conditions = ['pretest', 'posttest']  # contrast image: conditions[0] - conditions[1]
-test_variable = 0 # select 0 for H or 1 for M
+test_variable = 1 # select 0 for H or 1 for M
 
 
 # remove outliers when computing the mean cp for the stc file
