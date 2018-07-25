@@ -29,17 +29,17 @@ project_dir = dirname(dirname(abspath(__file__)))
 sys.path.insert(0, project_dir)
 
 # time string
-time_str = '20180713'
+time_str = '20180724'
 
 # Raw data folder name
-raw_dir_name = 'raw_on_parc_400Hz_'+ time_str +'_rec_param_1'
+raw_dir_name = 'raw_on_parc_400Hz_no_ica_'+ time_str +'_rec_param_0'
 
 # Output folder name (the index of the source reconstruction 
 #                     parameters will be appended to out_dir_name)
-out_dir_name = 'mf_parcel_400Hz_'+ time_str + '_rec_param_1'
+out_dir_name = 'mf_parcel_400Hz_no_ica_'+ time_str + '_rec_param_0'
 
 # Number of processes to run in parallel
-N_PROCESS = 2
+N_PROCESS = 4
 
 #------------------------------------------------------------------------------
 # Load info and params

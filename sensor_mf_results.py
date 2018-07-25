@@ -22,9 +22,12 @@ def load_data(group, subject, condition,
     """
     data_dir = info['paths_to_subjects_output'][group][subject]
 
-
-    filename = '%s_channel_%s_params_%d.h5'%(condition, channel_type, mf_param_idx)
-    filename = os.path.join(data_dir, filename)
+    if channel_type == 'EOG':
+        filename = '%s_channel_EOG_params_%d.h5'%(condition, mf_param_idx)
+        filename = os.path.join(data_dir, 'EOG' ,filename)
+    else:
+        filename = '%s_channel_%s_params_%d.h5'%(condition, channel_type, mf_param_idx)
+        filename = os.path.join(data_dir, filename)
 
     with h5py.File(filename, 'r') as f:
         log_cumulants = f['log_cumulants'][:]
@@ -56,6 +59,8 @@ def load_data_groups_subjects(condition,
         n_channels = 102
     if channel_type == 'grad':
         n_channels = 204
+    if channel_type == 'EOG':
+        n_channels = 2
 
     n_subjects = sum([ len(subjects[gg]) for gg in groups ])
 

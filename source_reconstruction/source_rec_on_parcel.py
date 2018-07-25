@@ -33,7 +33,7 @@ N_PROCESS = 3
 #------------------------------------------------------------------------------
 # date, e.g. 20180516
 timestr = time.strftime("%Y%m%d")
-raw_folder_name = 'raw_on_parc_400Hz'
+raw_folder_name = 'raw_on_parc_400Hz_no_ica'
 
 #------------------------------------------------------------------------------
 # Load info and params
@@ -47,9 +47,9 @@ params = source_reconstruction_params.get_params()
 #-------------------------------------------------------------------------------
 # Select subjects
 #-------------------------------------------------------------------------------
-groups   = ['V', 'AVr'] #, 'V', 'AVr']
+groups   = ['AV', 'V', 'AVr'] #, 'V', 'AVr']
 subjects = {}
-# subjects['AV'] = info['subjects']['AV']
+subjects['AV'] = info['subjects']['AV']
 subjects['V'] = info['subjects']['V']
 subjects['AVr'] = info['subjects']['AVr']
 
@@ -128,13 +128,13 @@ def run_source_rec(param_idx, param, group, subject):
                                 'trans_sss_nofilt_ds5_meg-oct-6-inv.fif')
         fname_raw =os.path.join(info['paths_to_subjects'][group][subject],
                                  group + '_%s_trans_sss_nofilt_ds5_raw.fif' % cond)
-        ica_f_name = os.path.join(info['paths_to_subjects'][group][subject],
-                                group +'_'+icagroup+'-nofilt-all-ica.fif')
+        # ica_f_name = os.path.join(info['paths_to_subjects'][group][subject],
+        #                         group +'_'+icagroup+'-nofilt-all-ica.fif')
         inverse_operator = read_inverse_operator(fname_inv)
         src = inverse_operator['src']
         raw = Raw(fname_raw, preload=True).copy()
-        ica=mne.preprocessing.read_ica(ica_f_name).copy()
-        raw = ica.apply(raw)
+        # ica=mne.preprocessing.read_ica(ica_f_name).copy()
+        # raw = ica.apply(raw)
         sfreq = raw.info['sfreq']
         if 'test' in fname_raw:
             part= ['','_bis']

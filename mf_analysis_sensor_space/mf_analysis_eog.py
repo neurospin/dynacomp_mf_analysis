@@ -34,9 +34,9 @@ import numpy as np
 #-------------------------------------------------------------------------------
 
 # Subjects and conditions
-groups   = ['V', 'AVr'] #, 'V', 'AVr']
+groups   = ['AV', 'V', 'AVr']
 subjects = {}
-# subjects['AV'] = info['subjects']['AV']
+subjects['AV'] = info['subjects']['AV']
 subjects['V'] = info['subjects']['V']
 subjects['AVr'] = info['subjects']['AVr']
 conditions  = info['sessions']
