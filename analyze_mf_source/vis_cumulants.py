@@ -35,8 +35,7 @@ source_rec_params_idx = 0
 # Select conditions ('rest0', 'rest5', 'pretest', 'posttest')
 # and cortical labels
 conditions = ['rest5', 'posttest']
-# labels     = [110, 20]
-labels     = [50, 130]
+labels     = [110, 20]
 labels_region = ['frontal', 'occipital']
 colors     = ['r', 'b']
 
