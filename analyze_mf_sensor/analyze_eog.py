@@ -42,20 +42,22 @@ raw_filename = '/neurospin/tmp/Omar/AV_rest0_raw_trans_sss.fif'
 # select sensor type
 sensor_type = 'EOG'
 
-
 # select analysis type: 0 for H, 1 for M
 see_cumulant = 1
 
 # Select groups and subjects
-groups = ['AV', 'V' ,'AVr']
+groups = ['AV', 'V', 'AVr']
+subjects = {}
 subjects = info['subjects']
+n_subjects = 36
+
 
 # Select conditions
 rest_condition = 'rest5'
 task_condition = 'posttest'
 
 # Select MF parameters and source reconstruction parameters
-mf_params_idx = 2
+mf_params_idx = 1
 
 # Load cumulants and log-cumulants
 _, all_cumulants_rest, subjects_list, params, _, _, _ = \
@@ -106,22 +108,34 @@ H_rest = all_log_cumulants_rest[:, :, 0]
 H_task = all_log_cumulants_task[:, :, 0]
 
 plt.figure()
-plt.plot(H_rest[:, 0], H_rest[:, 1], 'bo', label='rest')
-plt.plot(H_task[:, 0], H_task[:, 1], 'ro', label='task')
+plt.plot(H_rest[:, 0], H_rest[:, 1], 'bo', label=rest_condition)
+plt.plot(H_task[:, 0], H_task[:, 1], 'ro', label=task_condition)
 plt.legend()
 plt.grid()
 
 plt.figure()
-plt.plot(H_rest[:, 0], 'bo-', label='rest ch 1')
-plt.plot(H_task[:, 0], 'ro-', label='task ch 1')
+plt.plot(H_rest[:, 0], 'bo-', label=rest_condition+' EOG channel 1')
+plt.plot(H_task[:, 0], 'ro-', label=task_condition+' EOG channel 1')
+plt.xlabel('subject')
+plt.ylabel('H')
 plt.legend()
 plt.grid()
 
 plt.figure()
-plt.plot(H_rest[:, 1], 'bo-', label='rest ch 2')
-plt.plot(H_task[:, 1], 'ro-', label='task ch 2')
+plt.plot(H_rest[:, 1], 'bo-', label=rest_condition+' EOG channel 2')
+plt.plot(H_task[:, 1], 'ro-', label=task_condition+' EOG channel 2')
+plt.xlabel('subject')
+plt.ylabel('H')
 plt.legend()
 plt.grid()
+
+
+C1j_rest_ch1 = (all_cumulants_rest[:, 0, 0, :]).mean(axis = 0)
+C1j_rest_ch2 = (all_cumulants_rest[:, 1, 0, :]).mean(axis = 0)
+
+C1j_task_ch1 = (all_cumulants_task[:, 0, 0, :]).mean(axis = 0)
+C1j_task_ch2 = (all_cumulants_task[:, 1, 0, :]).mean(axis = 0)
+
 
 
 C2j_rest_ch1 = (all_cumulants_rest[:, 0, 1, :]).mean(axis = 0)
@@ -132,15 +146,26 @@ C2j_task_ch2 = (all_cumulants_task[:, 1, 1, :]).mean(axis = 0)
 
 
 
+v_utils.plot_cumulants([C1j_rest_ch1, C1j_task_ch1], 
+                        j1=10, j2=14, 
+                        title = 'C1(j) EOG channel 1', 
+                        labels = [rest_condition, task_condition])
+
+v_utils.plot_cumulants([C1j_rest_ch2, C1j_task_ch2], 
+                        j1=10, j2=14, 
+                        title = 'C1(j) EOG channel 2', 
+                        labels = [rest_condition, task_condition])
+
+
 v_utils.plot_cumulants([C2j_rest_ch1, C2j_task_ch1], 
                         j1=10, j2=14, 
-                        title = 'C2(j) ch1', 
-                        labels = ['rest', 'task'])
+                        title = 'C2(j) EOG channel 1', 
+                        labels = [rest_condition, task_condition])
 
 v_utils.plot_cumulants([C2j_rest_ch2, C2j_task_ch2], 
                         j1=10, j2=14, 
-                        title = 'C2(j) ch2', 
-                        labels = ['rest', 'task'])
+                        title = 'C2(j) EOG channel 2', 
+                        labels = [rest_condition, task_condition])
 
 
 
@@ -151,13 +176,13 @@ X = np.vstack((H_rest, H_task))
 y0 = np.zeros(H_rest.shape[0])
 y1 = np.ones(H_task.shape[0])
 y = np.hstack((y0,y1))
-subject_index = np.hstack((np.arange(36), np.arange(36)))
+subject_index = np.hstack((np.arange(n_subjects), np.arange(n_subjects)))
 
 
 svm = SVC(kernel='linear')
 clf = svm
 
-cv  = GroupShuffleSplit(n_splits= 20, 
+cv  = GroupShuffleSplit(n_splits= 30, 
                               test_size = 0.25, 
                               random_state = 123 )
 

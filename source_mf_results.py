@@ -12,7 +12,8 @@ info = meg_info.get_info()
 def load_data(group, subject, condition, 
               mf_param_idx = 1, 
               source_rec_param_idx = 0,
-              time_str = '20180713'):
+              time_str = '20180713',
+              extra_info = ''):
     """
     group = 'AV', 'V' or 'AVr'
     subject = one of the subjects in the given group
@@ -21,7 +22,7 @@ def load_data(group, subject, condition,
     source_rec_param_idx = index of source reconstruction parameters
     """
     data_dir = info['paths_to_subjects_output'][group][subject]
-    mf_dir_name = 'mf_parcel_400Hz_'+ time_str +'_rec_param_%d'%source_rec_param_idx
+    mf_dir_name = 'mf_parcel_400Hz_' + extra_info + time_str +'_rec_param_%d'%source_rec_param_idx
 
     filename = os.path.join(data_dir, 
                             mf_dir_name, 
@@ -42,7 +43,8 @@ def load_data_groups_subjects(condition,
                               time_str = '20180713',
                               n_labels = 138,
                               n_cumul = 3,
-                              max_j = 13):
+                              max_j = 13,
+                              extra_info = ''):
     """ 
     conition = 'rest0', 'rest5', 'pretest' or 'posttest'
     groups: list
@@ -63,7 +65,8 @@ def load_data_groups_subjects(condition,
             log_cumulants, cumulants = load_data(gg, ss, condition, 
                                                  mf_param_idx, 
                                                  source_rec_param_idx,
-                                                 time_str)
+                                                 time_str,
+                                                 extra_info)
 
             all_log_cumulants[idx, :, :] = log_cumulants
             all_cumulants[idx, :, :, :max_j] = cumulants[:,:,:max_j]
@@ -83,7 +86,8 @@ def load_logcumul_for_classification(conditions_0, conditions_1,
                                      n_labels = 138,
                                      n_cumul = 3,
                                      max_j = 13,
-                                     clip_c2 = True):
+                                     clip_c2 = True,
+                                     extra_info = ''):
     """
     conditions_0 : conditions for classif. label 0 (e.g. ['rest0', 'rest5'])
     conditions_1 : conditions for classif. label 1 (e.g. ['pretest', 'posttest'])
@@ -114,7 +118,8 @@ def load_logcumul_for_classification(conditions_0, conditions_1,
                                             time_str = time_str,
                                             n_labels = n_labels,
                                             n_cumul = n_cumul,
-                                            max_j = max_j)
+                                            max_j = max_j,
+                                            extra_info = extra_info)
 
         subjects_0 = subjects_0 + subjects_list
         subjects_0_idx = subjects_0_idx + list(range((len(subjects_list))))
@@ -161,7 +166,8 @@ def load_logcumul_for_classification(conditions_0, conditions_1,
                                             time_str = time_str,
                                             n_labels = n_labels,
                                             n_cumul = n_cumul,
-                                            max_j = max_j)
+                                            max_j = max_j,
+                                            extra_info = extra_info)
 
         subjects_1 = subjects_1 + subjects_list
         subjects_1_idx = subjects_1_idx + list(range((len(subjects_list))))

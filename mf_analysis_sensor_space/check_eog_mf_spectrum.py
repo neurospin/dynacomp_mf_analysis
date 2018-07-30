@@ -66,7 +66,8 @@ bis     = False
 #---------------------------------------------------------
 
 # Get raw data
-raw = preprocessing.get_raw(group, subject, condition, bis)
+# raw = preprocessing.get_raw(group, subject, condition, bis)
+raw = mne.io.read_raw_fif('/neurospin/tmp/Omar/AV_rest0_raw_trans_sss.fif')
 
 # Pick MEG EOG channels
 picks =  mne.pick_types(raw.info, meg=False, eeg=False, stim=False, eog=True,
