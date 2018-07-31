@@ -25,6 +25,11 @@ mf_params = mf_config_sensor_space.get_mf_params()
 This file contains information about multifractal analysis parameters.
 """
 
+# Scales for EOG
+SCALE_1 = 10
+SCALE_2 = 14   # fs = 2000, f1 = 0.1, f2 = 1.5
+
+
 import sys, os
 from os.path import dirname, abspath
 import numpy as np
@@ -72,6 +77,8 @@ def single_mf_analysis(args):
         for params_index in params_index_list: # iterate through mf parameters
             params = mf_params[params_index]
             mfa = mf.MFA(**params)
+            mfa.j1 = SCALE_1
+            mfa.j2 = SCALE_2
             mfa.verbose = 1
 
             ###############################################

@@ -56,7 +56,7 @@ n_subjects = 36
 rest_condition = 'rest5'
 task_condition = 'posttest'
 
-# Select MF parameters and source reconstruction parameters
+# Select MF parameters
 mf_params_idx = 1
 
 # Load cumulants and log-cumulants
