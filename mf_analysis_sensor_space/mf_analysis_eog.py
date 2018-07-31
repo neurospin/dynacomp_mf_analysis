@@ -39,10 +39,10 @@ import numpy as np
 #-------------------------------------------------------------------------------
 
 # Subjects and conditions
-groups   = ['AV', 'V', 'AVr']
+groups   = ['AVr']
 subjects = {}
-subjects['AV'] = info['subjects']['AV']
-subjects['V'] = info['subjects']['V']
+# subjects['AV'] = info['subjects']['AV']
+# subjects['V'] = info['subjects']['V']
 subjects['AVr'] = info['subjects']['AVr']
 conditions  = info['sessions']
 
@@ -70,8 +70,8 @@ def single_mf_analysis(args):
     Apply MF analysis on (group, subject, condition, params) using the parameters in the
     mf_params dictionary
     """
-    # try:
-    if True:
+    try:
+    # if True:
         group, subject, condition, params_index_list, max_j = args
 
         for params_index in params_index_list: # iterate through mf parameters
@@ -179,8 +179,8 @@ def single_mf_analysis(args):
             print("*** saved file ", output_filename)
             print("-------------------------------------------------")
 
-    # except Exception as e:
-    #     print('!!! Error in mf_analysis_on_sensors: '+ str(e))
+    except Exception as e:
+        print('!!! Error in mf_analysis_on_sensors: '+ str(e))
 
     # return raw, output_filename
 

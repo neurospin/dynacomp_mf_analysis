@@ -60,14 +60,19 @@ def main():
     #---------------------------------------------------------------------------
 
     # groups and subjects
-    groups   = ['AV', 'V', 'AVr']
-    # groups   = ['V', 'AVr']
-    subjects = {}
-    subjects['AV'] = info['subjects']['AV']
-    subjects['V'] = info['subjects']['V']
-    subjects['AVr'] = info['subjects']['AVr']
-    conditions  = info['sessions']
+    # groups   = ['AV', 'V', 'AVr']
+    # subjects = {}
+    # subjects['AV'] = info['subjects']['AV']
+    # subjects['V'] = info['subjects']['V']
+    # subjects['AVr'] = info['subjects']['AVr']
+    # conditions  = info['sessions']
     
+
+    groups   = ['AV', 'AVr']
+    subjects = {}
+    subjects['AV'] = ['mp_110340']
+    subjects['AVr'] = ['jd_110235']
+    conditions = ['rest5']
 
     # folder containing raw data
     raw_data_dir = {}
