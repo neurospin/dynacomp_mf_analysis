@@ -52,7 +52,10 @@ def get_info(dataset_dir = DATASET_DIR):
     #---------------------------------------------------------------------------
     # Sessions
     #---------------------------------------------------------------------------
-    sessions = ['rest0', 'rest5', 'pretest', 'posttest']
+    sessions = ['rest0', 'rest5', 'pretest', 'posttest'] #['learn1', 'learn2','learn3','learn4', \
+    # 'rest1', 'rest2', 'rest3', 'rest4']
+
+    #['rest0', 'rest5', 'pretest', 'posttest']
 
     info['sessions'] = sessions
 
