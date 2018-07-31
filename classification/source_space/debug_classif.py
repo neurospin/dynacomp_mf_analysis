@@ -167,6 +167,8 @@ def compare_distributions(data_train, data_test, title = ''):
     plt.title(title)
     plt.plot(np.arange(138), data_train.mean(axis=0), 'bo-', label = 'train')
     plt.plot(np.arange(138), data_test.mean(axis=0), 'ro-', label = 'test')
+    plt.xlabel('cortical region')
+    plt.ylabel('mean H')
     plt.legend()
 
 

@@ -66,12 +66,13 @@ def plot_brain(data, fmin = -1.0, fmax = 1.0, png_filename = None, positive_only
 
     if not positive_only:
         cm = mne.viz.mne_analyze_colormap([5, 10, 15], format = 'mayavi')
+        # cm = get_cm()
     else:
-        colors= [(105./255., 105./255.,105./255.),
-                 (105./255., 105./255.,105./255.),
-                 (255./255.,0.,0),
-                 (255./255.,255./255.,0),
-                 (255./255.,255./255.,0)]
+        colors = [(105./255., 105./255.,105./255.),
+                  (105./255., 105./255.,105./255.),
+                  (255./255.,0.,0),
+                  (255./255.,255./255.,0),
+                  (255./255.,255./255.,0)]
         cm_name='my_cm'
         cm = LinearSegmentedColormap.from_list(cm_name,colors, N=256)
         cm = 255.*np.array([cm(ind) for ind in np.arange(256)])
@@ -80,8 +81,8 @@ def plot_brain(data, fmin = -1.0, fmax = 1.0, png_filename = None, positive_only
     brain = stc.plot(hemi = 'split', views = ['lat','med'],
             colormap= cm,subjects_dir=subjects_dir)
 
-
-    try:
+    # try:
+    if True:
         if not positive_only:
             brain.scale_data_colormap(fmin=fmin, fmid=fmid, fmax=fmax, transparent=False)
             # Set transparency around 0
@@ -98,12 +99,31 @@ def plot_brain(data, fmin = -1.0, fmax = 1.0, png_filename = None, positive_only
                     brain.data_dict[h]['surfaces'][s].module_manager.scalar_lut_manager.lut.table = table
         else:
             brain.scale_data_colormap(fmin=fmin, fmid=fmid, fmax=fmax, transparent=True)
-    except:
-        pass
+    # except:
+    #     pass
 
     # Save figure
     if png_filename is not None:
         brain.save_image(png_filename)
         brain.close()
 
-    return labels
+    return labels, cm
+
+
+# def get_cm():
+    
+#     cdict2 = {'red':   ((0.0, 0.0, 0.0),
+#                    (0.5, 0.0, 1.0),
+#                    (1.0, 0.1, 1.0)),
+
+#          'green': ((0.0, 0.0, 0.0),
+#                    (1.0, 0.0, 0.0)),
+
+#          'blue':  ((0.0, 0.0, 0.1),
+#                    (0.5, 1.0, 0.0),
+#                    (1.0, 0.0, 0.0))
+#         }
+
+#     blue_red2 = LinearSegmentedColormap('BlueRed2', cdict2)
+
+#     return plt.cm.viridis

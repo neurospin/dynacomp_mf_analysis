@@ -23,9 +23,18 @@ import numpy as np
 from scipy.stats import ttest_1samp # ttest_rel, ttest_ind, wilcoxon
 from statsmodels.stats.multitest import multipletests
 import source_mf_results as mfr
-import plots
+import plots_ as plots
 
 import matplotlib.pyplot as plt
+
+OPTION = 1
+
+if OPTION == 0:
+    EXTRA_INFO =  ''
+    TIMESTR    =  '20180713'
+else:
+    EXTRA_INFO = 'no_ica_'  # ''
+    TIMESTR    = '20180724' # '20180713'
 
 
 #===============================================================================
@@ -36,20 +45,20 @@ import meg_info
 info   = meg_info.get_info()
 
 # Select groups and subjects
-groups = ['AVr']#, 'V', 'AVr']
+groups = ['AV', 'V', 'AVr']
 subjects = {}
-# subjects['AV'] = info['subjects']['AV']
-# subjects['V'] = info['subjects']['V']
+subjects['AV']  = info['subjects']['AV']
+subjects['V']   = info['subjects']['V']
 subjects['AVr'] = info['subjects']['AVr']
 
 
 # Select MF parameters and source reconstruction parameters
-mf_params_idx = 3
+mf_params_idx = 1
 source_rec_params_idx = 0
  
 # Select conditions to contrast ('rest0', 'rest5', 'pretest', 'posttest')
 
-conditions = ['pretest', 'posttest']  # contrast image: conditions[0] - conditions[1]
+conditions = ['rest5', 'posttest']  # contrast image: conditions[0] - conditions[1]
 test_variable = 1 # select 0 for H or 1 for M
 
 
@@ -146,12 +155,16 @@ def my_std(a,axis=0):
 all_log_cumulants_cond_0,_ ,subjects_list = \
     mfr.load_data_groups_subjects(conditions[0], groups, subjects,
                                   mf_param_idx = mf_params_idx, 
-                                  source_rec_param_idx = source_rec_params_idx)
+                                  source_rec_param_idx = source_rec_params_idx,
+                                  time_str = TIMESTR,
+                                  extra_info = EXTRA_INFO)
 
 all_log_cumulants_cond_1,_ ,subjects_list = \
     mfr.load_data_groups_subjects(conditions[1], groups, subjects,
                                   mf_param_idx = mf_params_idx, 
-                                  source_rec_param_idx = source_rec_params_idx)
+                                  source_rec_param_idx = source_rec_params_idx,
+                                  time_str = TIMESTR,
+                                  extra_info = EXTRA_INFO)
  
 
 n_subjects = all_log_cumulants_cond_0.shape[0]
@@ -224,11 +237,13 @@ if test_variable == 1:
     cumulant_name = 'c2'
 
 
-filename = '%s_contrast_%s_%s_mf_%d_rec_%d.png'%(cumulant_name, conditions[0], conditions[1], mf_params_idx, source_rec_params_idx)
+filename = EXTRA_INFO + '%s_contrast_%s_%s_mf_%d_rec_%d.png'%(cumulant_name, conditions[0], conditions[1], mf_params_idx, source_rec_params_idx)
 filename = os.path.join('output_images', filename)
 
 # maxval = np.abs(contrast).max()
 # plots.plot_brain(contrast, fmin = -maxval, fmax = maxval, 
 #                  png_filename = filename, positive_only = False)
-plots.plot_brain(contrast, fmin = -0.116, fmax = 0.116, 
+# _, cm = plots.plot_brain(contrast, fmin = -0.116/4, fmax = 0.116/4, 
+#                  png_filename = filename, positive_only = False)
+_, cm = plots.plot_brain(contrast, fmin = -0.01, fmax = 0.01, 
                  png_filename = filename, positive_only = False)

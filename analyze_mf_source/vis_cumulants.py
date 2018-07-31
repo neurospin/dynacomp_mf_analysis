@@ -14,6 +14,15 @@ import matplotlib.pyplot as plt
 from scipy.stats import linregress
 
 
+OPTION = 1
+
+if OPTION == 0:
+    EXTRA_INFO =  ''
+    TIMESTR    =  '20180713'
+else:
+    EXTRA_INFO = 'no_ica_'  # ''
+    TIMESTR    = '20180724' # '20180713'
+
 #===============================================================================
 # Global parameters 
 #===============================================================================
@@ -50,7 +59,9 @@ def run():
             all_log_cumulants, all_cumulants ,subjects_list = \
                 mfr.load_data_groups_subjects(condition, groups, subjects,
                                               mf_param_idx = mf_params_idx, 
-                                              source_rec_param_idx = source_rec_params_idx)
+                                              source_rec_param_idx = source_rec_params_idx,
+                                              time_str = TIMESTR,
+                                              extra_info = EXTRA_INFO)
 
             color_idx = 0
             for label, region in zip(labels, labels_region):
@@ -90,12 +101,16 @@ def run():
     all_log_cumulants_rest, _, _ = \
                 mfr.load_data_groups_subjects('rest5', groups, subjects,
                                               mf_param_idx = mf_params_idx, 
-                                              source_rec_param_idx = source_rec_params_idx)
+                                              source_rec_param_idx = source_rec_params_idx,
+                                              time_str = TIMESTR,
+                                              extra_info = EXTRA_INFO)
 
     all_log_cumulants_task, _, _  = \
                 mfr.load_data_groups_subjects('posttest', groups, subjects,
                                               mf_param_idx = mf_params_idx, 
-                                              source_rec_param_idx = source_rec_params_idx)
+                                              source_rec_param_idx = source_rec_params_idx,
+                                              time_str = TIMESTR,
+                                              extra_info = EXTRA_INFO)
 
 
     c2_rest_occ = all_log_cumulants_rest[:, 20, 1]

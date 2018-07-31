@@ -50,7 +50,7 @@ def plot_cumulants(cumulants_list, j1=9, j2=13, title = '', labels = None):
     plt.xlabel('j')
     plt.ylabel('C(j)')
     plt.legend()
-    plt.grid()
+    plt.grid(True)
 
 def plot_sensors(sensor_name_list, pos, ch_name2index):
     for sensor_name in sensor_name_list:
