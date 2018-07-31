@@ -15,10 +15,9 @@ import matplotlib.pyplot as plt
 from scipy.stats import linregress, pearsonr, spearmanr
 from statsmodels.stats.multitest import multipletests
 
-import plots_ as plots
-
 import mne
 
+import visualization_utils as v_utils
 
 #------------------------------------------------------------------
 # Parameters
@@ -31,6 +30,10 @@ import meg_info
 info_sensor   = meg_info_sensor_space.get_info()
 info_source   = meg_info.get_info()
 
+
+#raw filename - only one raw file is necessary to get information about 
+# sensor loacation -> used to plot
+raw_filename = '/neurospin/tmp/Omar/AV_rest0_raw_trans_sss.fif'
 
 # alpha for hyp testing
 alpha = 0.05
@@ -49,16 +52,6 @@ SCALE_1 = 10
 SCALE_2 = 14   # fs = 2000, f1 = 0.1, f2 = 1.5
 
 
-# Cortical data: with or without ICA preprocessing?
-with_ica = False
-if with_ica:
-    EXTRA_INFO =  ''
-    TIMESTR    =  '20180713'
-else:
-    EXTRA_INFO = 'no_ica_'  # ''
-    TIMESTR    = '20180724' # '20180713'
-
-
 # Select conditions
 rest_condition = 'rest5'
 task_condition = 'posttest'
@@ -66,8 +59,6 @@ task_condition = 'posttest'
 # Select MF parameters
 mf_params_idx = 1
 
-# Select source reconstruction parameters
-source_rec_params_idx = 0
 
 #------------------------------------------------------------------
 # Functions
@@ -118,27 +109,27 @@ def get_eog_log_cumulants(rest_condition,
 
 
 
-def get_cortex_log_cumulants(rest_condition, 
-                             task_condition,
-                             groups,
-                             subjects,
-                             mf_params_idx,
-                             source_rec_params_idx):
-    all_log_cumulants_rest,_ ,subjects_list = \
-    mfr_source.load_data_groups_subjects(rest_condition, groups, subjects,
-                                  mf_param_idx = mf_params_idx, 
-                                  source_rec_param_idx = source_rec_params_idx,
-                                  time_str = TIMESTR,
-                                  extra_info = EXTRA_INFO)
+def get_mag_log_cumulants(rest_condition, 
+                          task_condition,
+                          groups,
+                          subjects,
+                          mf_params_idx):
 
-    all_log_cumulants_task,_ ,subjects_list = \
-        mfr_source.load_data_groups_subjects(task_condition, groups, subjects,
+     # Load cumulants and log-cumulants
+    all_log_cumulants_rest, all_cumulants_rest, subjects_list, params, _, _, _ = \
+         mfr_sensor.load_data_groups_subjects(rest_condition, 
+                                       groups = groups,
+                                       subjects = subjects,
+                                       mf_param_idx = mf_params_idx, 
+                                       channel_type = 'mag')
+    all_log_cumulants_task, all_cumulants_task, subjects_list, params, channels_picks, channels_names, ch_name2index = \
+        mfr_sensor.load_data_groups_subjects(task_condition, 
+                                      groups = groups,
+                                      subjects = subjects, 
                                       mf_param_idx = mf_params_idx, 
-                                      source_rec_param_idx = source_rec_params_idx,
-                                      time_str = TIMESTR,
-                                      extra_info = EXTRA_INFO)
+                                      channel_type = 'mag')
 
-    return all_log_cumulants_rest, all_log_cumulants_task
+    return all_log_cumulants_rest, all_log_cumulants_task, channels_picks
 
 #------------------------------------------------------------------
 # Load data
@@ -156,36 +147,35 @@ eog_logcumul_diff = eog_logcumul_rest - eog_logcumul_task # shape (36, 2)
 
 
 
-cortex_all_log_cumulants_rest, cortex_all_log_cumulants_task = \
-        get_cortex_log_cumulants(rest_condition, 
-                                 task_condition,
-                                 groups,
-                                 subjects,
-                                 mf_params_idx,
-                                 source_rec_params_idx)
+mag_all_log_cumulants_rest, mag_all_log_cumulants_task, mag_channels_picks = \
+        get_mag_log_cumulants(rest_condition, 
+                              task_condition,
+                              groups,
+                              subjects,
+                              mf_params_idx)
 
-cortex_logcumul_rest = cortex_all_log_cumulants_rest[:, :, cumulant_idx]
-cortex_logcumul_task = cortex_all_log_cumulants_task[:, :, cumulant_idx] # shape (36, 138)
-cortex_logcumul_diff = cortex_logcumul_rest - cortex_logcumul_task # shape (36, 138)
+mag_logcumul_rest = mag_all_log_cumulants_rest[:, :, cumulant_idx]
+mag_logcumul_task = mag_all_log_cumulants_task[:, :, cumulant_idx] # shape (36, 102)
+mag_logcumul_diff = mag_logcumul_rest - mag_logcumul_task # shape (36, 102)
 
 
-n_eog_channels   = 2
-n_cortex_regions = 138
+n_eog_channels  = 2
+n_mag_channels  = 102
 
-correlations = np.zeros((n_eog_channels, n_cortex_regions))
-pvalues      = np.zeros((n_eog_channels, n_cortex_regions))
+correlations = np.zeros((n_eog_channels, n_mag_channels))
+pvalues      = np.zeros((n_eog_channels, n_mag_channels))
 
 
 # Individual correlation
 for eog_channel in range(n_eog_channels):
     diff_eog = eog_logcumul_diff[:, eog_channel]
-    for cortex_region in range(n_cortex_regions):
-        diff_cortex = cortex_logcumul_diff[:, cortex_region]
+    for mag_region in range(n_mag_channels):
+        diff_mag = mag_logcumul_diff[:, mag_region]
 
-        corr, pval = pearsonr(diff_eog, diff_cortex)
+        corr, pval = pearsonr(diff_eog, diff_mag)
 
-        correlations[eog_channel, cortex_region] = corr
-        pvalues[eog_channel, cortex_region]      = pval
+        correlations[eog_channel, mag_region] = corr
+        pvalues[eog_channel, mag_region]      = pval
 
 # Apply FDR correction (separetely for each EOG channel)
 pvalues[0, :] = multipletests(pvalues[0, :], alpha, method = 'fdr_bh')[1]
@@ -199,29 +189,23 @@ correlations[1, pvalues[1, :]>alpha] = 0.0
 
 # Correlation between mean differences (average across channels)
 eog_logcumul_diff_mean    = eog_logcumul_diff.mean(axis = 1)
-cortex_logcumul_diff_mean = cortex_logcumul_diff.mean(axis = 1)
+mag_logcumul_diff_mean = mag_logcumul_diff.mean(axis = 1)
 
-corr_mean, pval_mean = pearsonr(eog_logcumul_diff_mean, cortex_logcumul_diff_mean) 
-corr_mean_2, pval_mean_2 = spearmanr(eog_logcumul_diff_mean, cortex_logcumul_diff_mean) 
+corr_mean, pval_mean = pearsonr(eog_logcumul_diff_mean, mag_logcumul_diff_mean) 
+corr_mean_2, pval_mean_2 = spearmanr(eog_logcumul_diff_mean, mag_logcumul_diff_mean) 
 
 
 print("Correlation between \
-(mean eog diff) and (mean cortex diff) = %0.5f, pvalue = %0.5f"%(corr_mean, pval_mean))
+(mean eog diff) and (mean mag diff) = %0.5f, pvalue = %0.5f"%(corr_mean, pval_mean))
 
 
 # Plot correlation
-if cumulant_idx == 0:
-  file_1 = os.path.join('output_images','correlation_%seog_ch1_mf_%d.png'%(EXTRA_INFO, mf_params_idx))
-  file_2 = os.path.join('output_images','correlation_%seog_ch2_mf_%d.png'%(EXTRA_INFO, mf_params_idx))
-elif cumulant_idx == 1:
-   file_1 = os.path.join('output_images','c2_correlation_%seog_ch1_mf_%d.png'%(EXTRA_INFO, mf_params_idx))
-   file_2 = os.path.join('output_images','c2_correlation_%seog_ch2_mf_%d.png'%(EXTRA_INFO, mf_params_idx))
 
+# Load raw to get info about sensor positions
+raw = mne.io.read_raw_fif(raw_filename)
+# get sensor positions via layout
+pos = mne.find_layout(raw.info).pos[mag_channels_picks, :]
+v_utils.plot_data_topo(correlations[0, :], pos, vmin = 0.0, vmax = 0.8, title = 'correlations for channel 1', cmap = 'Reds')
+v_utils.plot_data_topo(correlations[1, :], pos, vmin = 0.0, vmax = 0.8, title = 'correlations for channel 2', cmap = 'Reds')
 
-
-plots.plot_brain(correlations[0, :], fmin = 0.00, fmax = 0.8, 
-                    png_filename = file_1, positive_only = True)
-plots.plot_brain(correlations[1, :], fmin = 0.00, fmax = 0.8, 
-                    png_filename = file_2, positive_only = True)
-
-
+plt.show()

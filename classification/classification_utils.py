@@ -66,6 +66,13 @@ def get_classifier(classifier_name, inner_cv, groups_cv):
         # parameters required to fit the classifier
         fit_params = {'groups':groups_cv}
 
+    elif classifier_name == 'random_forest_no_cv':
+        rf = RandomForestClassifier(n_estimators=300)
+        clf = rf
+        # parameters required to fit the classifier
+        fit_params = {}
+
+
     return clf, fit_params
 
 
@@ -83,6 +90,13 @@ def get_feature_importances(clf, fit_params, X, y):
 
     try:
         w = clf.best_estimator_.feature_importances_
+        positive_only = True
+        return w, positive_only
+    except:
+        pass
+
+    try:
+        w = clf.feature_importances_
         positive_only = True
         return w, positive_only
     except:

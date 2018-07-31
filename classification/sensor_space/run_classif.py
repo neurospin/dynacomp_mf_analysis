@@ -78,7 +78,7 @@ raw = mne.io.read_raw_fif(raw_filename)
 # Classification parameters 
 #===============================================================================
 # Choose classifier
-classifier_name_list = ['linear_svm', 'linear_svm_scaled']
+classifier_name_list = ['random_forest_no_cv']
 
 # Define cross validation scheme
 n_splits   = 30
@@ -92,7 +92,7 @@ for classifier_name in classifier_name_list:
     for mf_params_idx in [0,1,2,3]:    # 0, 1, 2 or 3 
         for channel_type in ['mag']:
             # Cumulants used for classification
-            for log_cumulants in [[0,1]]:  # [0, 1], [0] or [1]
+            for log_cumulants in [[0]]:  # [0, 1], [0] or [1]
                 print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
                 print("Running: ", mf_params_idx, channel_type, log_cumulants)
                 print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
