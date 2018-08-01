@@ -1,6 +1,6 @@
 """
-Analyze correlation between (EOG decrease in self-similarity) and
-(decrease of self-similarity of cortical region i) for i in range(138)
+Analyze correlation between (EOG (maxC2j-minC2j)_rest - (maxC2j-minC2j)_task ) and
+(maxC2j-minC2j)_rest - (maxC2j-minC2j)_task  of cortical region i) for i in range(138)
 """
 
 import sys, os
@@ -35,8 +35,6 @@ info_source   = meg_info.get_info()
 # alpha for hyp testing
 alpha = 0.05
 
-# select cumulant for analysis: 0 for H, 1 for M
-cumulant_idx = 1
 
 # Select groups and subjects
 groups = ['AV', 'V', 'AVr']
@@ -45,9 +43,12 @@ n_subjects = 36
 
 
 # Scales for EOG
-SCALE_1 = 10
-SCALE_2 = 14   # fs = 2000, f1 = 0.1, f2 = 1.5
+SCALE_1_eog = 10
+SCALE_2_eog = 14   # fs = 2000, f1 = 0.1, f2 = 1.5
 
+# Scales for mag
+SCALE_1_cortex = 8
+SCALE_2_cortex = 12   # fs = 400, f1 = 0.1, f2 = 1.5
 
 # Cortical data: with or without ICA preprocessing?
 with_ica = False
@@ -72,7 +73,7 @@ source_rec_params_idx = 0
 #------------------------------------------------------------------
 # Functions
 #------------------------------------------------------------------
-def get_eog_log_cumulants(rest_condition, 
+def get_eog_maxminC2j(rest_condition, 
                           task_condition,
                           groups,
                           subjects,
@@ -94,79 +95,70 @@ def get_eog_log_cumulants(rest_condition,
     n_subjects = all_cumulants_rest.shape[0]
     n_channels = all_cumulants_rest.shape[1]
     n_cumul    = all_cumulants_rest.shape[2]
-    all_log_cumulants_rest = np.zeros((n_subjects, n_channels, n_cumul))
-    all_log_cumulants_task = np.zeros((n_subjects, n_channels, n_cumul))
 
-    log2_e  = np.log2(np.exp(1))
-    for ss in range(n_subjects):
-        for nn in range(n_channels):
-            for cc in range(n_cumul):
-                c2j_rest = all_cumulants_rest[ss, nn, cc, :]
-                c2j_task = all_cumulants_task[ss, nn, cc, :]
+    maxminC2j_rest = (all_cumulants_rest[:, :, 1, SCALE_1_eog-1:SCALE_2_eog]).max(axis = 2) \
+                     - (all_cumulants_rest[:, :, 1, SCALE_1_eog-1:SCALE_2_eog]).min(axis = 2)
 
-                x_reg       = np.arange(SCALE_1, SCALE_2+1)
-                y_reg_rest  = c2j_rest[SCALE_1-1:SCALE_2]
-                y_reg_task  = c2j_task[SCALE_1-1:SCALE_2]
+    maxminC2j_task = (all_cumulants_task[:, :, 1, SCALE_1_eog-1:SCALE_2_eog]).max(axis = 2) \
+                     - (all_cumulants_task[:, :, 1, SCALE_1_eog-1:SCALE_2_eog]).min(axis = 2)
 
-                slope_rest, _, _, _, _ = linregress(x_reg,y_reg_rest)
-                slope_task, _, _, _, _ = linregress(x_reg,y_reg_task)
-
-                all_log_cumulants_rest[ss, nn, cc] = log2_e*slope_rest
-                all_log_cumulants_task[ss, nn, cc] = log2_e*slope_task
-
-    return all_log_cumulants_rest, all_log_cumulants_task
+    return maxminC2j_rest, maxminC2j_task
 
 
 
-def get_cortex_log_cumulants(rest_condition, 
-                             task_condition,
-                             groups,
-                             subjects,
-                             mf_params_idx,
-                             source_rec_params_idx):
-    all_log_cumulants_rest,_ ,subjects_list = \
+def get_cortex_maxminC2j(rest_condition, 
+                         task_condition,
+                         groups,
+                         subjects,
+                         mf_params_idx,
+                         source_rec_params_idx):
+
+    _,all_cumulants_rest ,subjects_list = \
     mfr_source.load_data_groups_subjects(rest_condition, groups, subjects,
                                   mf_param_idx = mf_params_idx, 
                                   source_rec_param_idx = source_rec_params_idx,
                                   time_str = TIMESTR,
                                   extra_info = EXTRA_INFO)
 
-    all_log_cumulants_task,_ ,subjects_list = \
+    _,all_cumulants_task ,subjects_list = \
         mfr_source.load_data_groups_subjects(task_condition, groups, subjects,
                                       mf_param_idx = mf_params_idx, 
                                       source_rec_param_idx = source_rec_params_idx,
                                       time_str = TIMESTR,
                                       extra_info = EXTRA_INFO)
 
-    return all_log_cumulants_rest, all_log_cumulants_task
+
+    maxminC2j_rest = (all_cumulants_rest[:, :, 1, SCALE_1_cortex-1:SCALE_2_cortex]).max(axis = 2) \
+                     - (all_cumulants_rest[:, :, 1, SCALE_1_cortex-1:SCALE_2_cortex]).min(axis = 2)
+
+    maxminC2j_task = (all_cumulants_task[:, :, 1, SCALE_1_cortex-1:SCALE_2_cortex]).max(axis = 2) \
+                     - (all_cumulants_task[:, :, 1, SCALE_1_cortex-1:SCALE_2_cortex]).min(axis = 2)
+                     
+    return maxminC2j_rest, maxminC2j_task
 
 #------------------------------------------------------------------
 # Load data
 #------------------------------------------------------------------
-eog_all_log_cumulants_rest, eog_all_log_cumulants_task = \
-        get_eog_log_cumulants(rest_condition, 
-                              task_condition,
-                              groups,
-                              subjects,
-                              mf_params_idx)
+eog_maxminC2j_rest, eog_maxminC2j_task = \
+                get_eog_maxminC2j(rest_condition, 
+                                      task_condition,
+                                      groups,
+                                      subjects,
+                                      mf_params_idx)
 
-eog_logcumul_rest = eog_all_log_cumulants_rest[:, :, cumulant_idx]
-eog_logcumul_task = eog_all_log_cumulants_task[:, :, cumulant_idx]
-eog_logcumul_diff = eog_logcumul_rest - eog_logcumul_task # shape (36, 2)
+eog_maxminC2j_diff = eog_maxminC2j_rest - eog_maxminC2j_task # shape (36, 2)
 
 
 
-cortex_all_log_cumulants_rest, cortex_all_log_cumulants_task = \
-        get_cortex_log_cumulants(rest_condition, 
-                                 task_condition,
-                                 groups,
-                                 subjects,
-                                 mf_params_idx,
-                                 source_rec_params_idx)
+cortex_maxminC2j_rest, cortex_maxminC2j_task = \
+                get_cortex_maxminC2j(rest_condition, 
+                                         task_condition,
+                                         groups,
+                                         subjects,
+                                         mf_params_idx,
+                                         source_rec_params_idx)
 
-cortex_logcumul_rest = cortex_all_log_cumulants_rest[:, :, cumulant_idx]
-cortex_logcumul_task = cortex_all_log_cumulants_task[:, :, cumulant_idx] # shape (36, 138)
-cortex_logcumul_diff = cortex_logcumul_rest - cortex_logcumul_task # shape (36, 138)
+cortex_maxminC2j_diff = cortex_maxminC2j_rest - cortex_maxminC2j_task # shape (36, 138)
 
 
 n_eog_channels   = 2
@@ -178,11 +170,11 @@ pvalues      = np.zeros((n_eog_channels, n_cortex_regions))
 
 # Individual correlation
 for eog_channel in range(n_eog_channels):
-    diff_eog = eog_logcumul_diff[:, eog_channel]
+    diff_eog = eog_maxminC2j_diff[:, eog_channel]
     for cortex_region in range(n_cortex_regions):
-        diff_cortex = cortex_logcumul_diff[:, cortex_region]
+        diff_cortex = cortex_maxminC2j_diff[:, cortex_region]
 
-        corr, pval = pearsonr(diff_eog, diff_cortex)
+        corr, pval = spearmanr(diff_eog, diff_cortex)
 
         correlations[eog_channel, cortex_region] = corr
         pvalues[eog_channel, cortex_region]      = pval
@@ -198,24 +190,20 @@ correlations[1, pvalues[1, :]>alpha] = 0.0
 
 
 # Correlation between mean differences (average across channels)
-eog_logcumul_diff_mean    = eog_logcumul_diff.mean(axis = 1)
-cortex_logcumul_diff_mean = cortex_logcumul_diff.mean(axis = 1)
+eog_maxminC2j_diff_mean    = eog_maxminC2j_diff.mean(axis = 1)
+cortex_maxminC2j_diff_mean = cortex_maxminC2j_diff.mean(axis = 1)
 
-corr_mean, pval_mean = pearsonr(eog_logcumul_diff_mean, cortex_logcumul_diff_mean) 
-corr_mean_2, pval_mean_2 = spearmanr(eog_logcumul_diff_mean, cortex_logcumul_diff_mean) 
+corr_mean, pval_mean = pearsonr(eog_maxminC2j_diff_mean, cortex_maxminC2j_diff_mean) 
+corr_mean_2, pval_mean_2 = spearmanr(eog_maxminC2j_diff_mean, cortex_maxminC2j_diff_mean) 
 
 
 print("Correlation between \
-(mean eog diff) and (mean cortex diff) = %0.5f, pvalue = %0.5f"%(corr_mean, pval_mean))
+(mean eog diff) and (mean cortex diff) = %0.5f, pvalue = %0.5f"%(corr_mean_2, pval_mean_2))
 
 
 # Plot correlation
-if cumulant_idx == 0:
-  file_1 = os.path.join('output_images','correlation_%seog_ch1_mf_%d.png'%(EXTRA_INFO, mf_params_idx))
-  file_2 = os.path.join('output_images','correlation_%seog_ch2_mf_%d.png'%(EXTRA_INFO, mf_params_idx))
-elif cumulant_idx == 1:
-   file_1 = os.path.join('output_images','c2_correlation_%seog_ch1_mf_%d.png'%(EXTRA_INFO, mf_params_idx))
-   file_2 = os.path.join('output_images','c2_correlation_%seog_ch2_mf_%d.png'%(EXTRA_INFO, mf_params_idx))
+file_1 = os.path.join('output_images','maxminC2j_correlation_%seog_ch1_mf_%d.png'%(EXTRA_INFO, mf_params_idx))
+file_2 = os.path.join('output_images','maxminC2j_correlation_%seog_ch2_mf_%d.png'%(EXTRA_INFO, mf_params_idx))
 
 
 
