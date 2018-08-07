@@ -146,9 +146,9 @@ def my_learning_curve(classifier_name, X, y, groups, train_sizes, scoring,
         clf, fit_params = get_classifier(classifier_name, inner_cv, groups)
 
         output = cross_validate(clf, X = X, y = y, scoring = scoring, cv = outer_cv,
-                        groups = groups, return_train_score = True,
-                        fit_params=fit_params, verbose = 2,
-                        n_jobs = n_jobs)
+                                groups = groups, return_train_score = True,
+                                fit_params=fit_params, verbose = 2,
+                                n_jobs = n_jobs)
 
         print("Train accuracy = %0.4f +- %0.4f"%(output['train_accuracy'].mean(), output['train_accuracy'].std()))
         print("Test accuracy = %0.4f +- %0.4f"%(output['test_accuracy'].mean(), output['test_accuracy'].std()))

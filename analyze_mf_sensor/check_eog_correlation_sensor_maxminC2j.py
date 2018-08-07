@@ -1,6 +1,6 @@
 """
-Analyze correlation between (EOG decrease in self-similarity) and
-(decrease of self-similarity of sensor region i) for i in range(n_channels)
+Analyze correlation between (EOG decrease of maxminC2j) and
+(decrease of maxminC2j of sensor i) for i in range(n_channels)
 """
 
 import sys, os
@@ -38,8 +38,6 @@ raw_filename = '/neurospin/tmp/Omar/AV_rest0_raw_trans_sss.fif'
 # alpha for hyp testing
 alpha = 0.05
 
-# select cumulant for analysis: 0 for H, 1 for M
-cumulant_idx = 0
 
 # Select groups and subjects
 groups = ['AV', 'V', 'AVr']
@@ -48,8 +46,13 @@ n_subjects = 36
 
 
 # Scales for EOG
-SCALE_1 = 10
-SCALE_2 = 14   # fs = 2000, f1 = 0.1, f2 = 1.5
+SCALE_1_eog = 10
+SCALE_2_eog = 14   # fs = 2000, f1 = 0.1, f2 = 1.5
+
+
+# Scales for MAG
+SCALE_1_mag = 9
+SCALE_2_mag = 13   # fs = 2000, f1 = 0.1, f2 = 1.5
 
 
 # Select conditions
@@ -63,7 +66,7 @@ mf_params_idx = 1
 #------------------------------------------------------------------
 # Functions
 #------------------------------------------------------------------
-def get_eog_log_cumulants(rest_condition, 
+def get_eog_maxC2j(rest_condition, 
                           task_condition,
                           groups,
                           subjects,
@@ -81,35 +84,14 @@ def get_eog_log_cumulants(rest_condition,
                                       subjects = subjects, 
                                       mf_param_idx = mf_params_idx, 
                                       channel_type = 'EOG')
+    maxC2j_rest = all_cumulants_rest[:,:,1, SCALE_1_eog-1:SCALE_2_eog].max(axis=2)
+    maxC2j_task = all_cumulants_task[:,:,1, SCALE_1_eog-1:SCALE_2_eog].max(axis=2)
 
-    n_subjects = all_cumulants_rest.shape[0]
-    n_channels = all_cumulants_rest.shape[1]
-    n_cumul    = all_cumulants_rest.shape[2]
-    all_log_cumulants_rest = np.zeros((n_subjects, n_channels, n_cumul))
-    all_log_cumulants_task = np.zeros((n_subjects, n_channels, n_cumul))
-
-    log2_e  = np.log2(np.exp(1))
-    for ss in range(n_subjects):
-        for nn in range(n_channels):
-            for cc in range(n_cumul):
-                c2j_rest = all_cumulants_rest[ss, nn, cc, :]
-                c2j_task = all_cumulants_task[ss, nn, cc, :]
-
-                x_reg       = np.arange(SCALE_1, SCALE_2+1)
-                y_reg_rest  = c2j_rest[SCALE_1-1:SCALE_2]
-                y_reg_task  = c2j_task[SCALE_1-1:SCALE_2]
-
-                slope_rest, _, _, _, _ = linregress(x_reg,y_reg_rest)
-                slope_task, _, _, _, _ = linregress(x_reg,y_reg_task)
-
-                all_log_cumulants_rest[ss, nn, cc] = log2_e*slope_rest
-                all_log_cumulants_task[ss, nn, cc] = log2_e*slope_task
-
-    return all_log_cumulants_rest, all_log_cumulants_task
+    return maxC2j_rest, maxC2j_task
 
 
 
-def get_mag_log_cumulants(rest_condition, 
+def get_mag_maxC2j(rest_condition, 
                           task_condition,
                           groups,
                           subjects,
@@ -129,34 +111,32 @@ def get_mag_log_cumulants(rest_condition,
                                       mf_param_idx = mf_params_idx, 
                                       channel_type = 'mag')
 
-    return all_log_cumulants_rest, all_log_cumulants_task, channels_picks
+    maxC2j_rest = all_cumulants_rest[:,:,1, SCALE_1_eog-1:SCALE_2_mag].max(axis=2)
+    maxC2j_task = all_cumulants_task[:,:,1, SCALE_1_eog-1:SCALE_2_mag].max(axis=2)
 
+    return maxC2j_rest, maxC2j_task, channels_picks
 #------------------------------------------------------------------
 # Load data
 #------------------------------------------------------------------
-eog_all_log_cumulants_rest, eog_all_log_cumulants_task = \
-        get_eog_log_cumulants(rest_condition, 
+eog_maxC2j_rest, eog_maxC2j_task = \
+        get_eog_maxC2j(rest_condition, 
                               task_condition,
                               groups,
                               subjects,
                               mf_params_idx)
 
-eog_logcumul_rest = eog_all_log_cumulants_rest[:, :, cumulant_idx]
-eog_logcumul_task = eog_all_log_cumulants_task[:, :, cumulant_idx]
-eog_logcumul_diff = eog_logcumul_rest - eog_logcumul_task # shape (36, 2)
+eog_maxC2j_diff = eog_maxC2j_rest - eog_maxC2j_task # shape (36, 2)
 
 
 
-mag_all_log_cumulants_rest, mag_all_log_cumulants_task, mag_channels_picks = \
-        get_mag_log_cumulants(rest_condition, 
+mag_maxC2j_rest, mag_maxC2j_task, mag_channels_picks = \
+        get_mag_maxC2j(rest_condition, 
                               task_condition,
                               groups,
                               subjects,
                               mf_params_idx)
 
-mag_logcumul_rest = mag_all_log_cumulants_rest[:, :, cumulant_idx]
-mag_logcumul_task = mag_all_log_cumulants_task[:, :, cumulant_idx] # shape (36, 102)
-mag_logcumul_diff = mag_logcumul_rest - mag_logcumul_task # shape (36, 102)
+mag_maxC2j_diff = mag_maxC2j_rest - mag_maxC2j_task # shape (36, 102)
 
 
 n_eog_channels  = 2
@@ -168,9 +148,9 @@ pvalues      = np.zeros((n_eog_channels, n_mag_channels))
 
 # Individual correlation
 for eog_channel in range(n_eog_channels):
-    diff_eog = eog_logcumul_diff[:, eog_channel]
+    diff_eog = eog_maxC2j_diff[:, eog_channel]
     for mag_region in range(n_mag_channels):
-        diff_mag = mag_logcumul_diff[:, mag_region]
+        diff_mag = mag_maxC2j_diff[:, mag_region]
 
         corr, pval = pearsonr(diff_eog, diff_mag)
 
@@ -188,11 +168,11 @@ correlations[1, pvalues[1, :]>alpha] = 0.0
 
 
 # Correlation between mean differences (average across channels)
-eog_logcumul_diff_mean    = eog_logcumul_diff.mean(axis = 1)
-mag_logcumul_diff_mean = mag_logcumul_diff.mean(axis = 1)
+eog_maxC2j_diff_mean    = eog_maxC2j_diff.mean(axis = 1)
+mag_maxC2j_diff_mean = mag_maxC2j_diff.mean(axis = 1)
 
-corr_mean, pval_mean = pearsonr(eog_logcumul_diff_mean, mag_logcumul_diff_mean) 
-corr_mean_2, pval_mean_2 = spearmanr(eog_logcumul_diff_mean, mag_logcumul_diff_mean) 
+corr_mean, pval_mean = pearsonr(eog_maxC2j_diff_mean, mag_maxC2j_diff_mean) 
+corr_mean_2, pval_mean_2 = spearmanr(eog_maxC2j_diff_mean, mag_maxC2j_diff_mean) 
 
 
 print("Correlation between \
