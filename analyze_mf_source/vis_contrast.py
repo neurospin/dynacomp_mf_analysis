@@ -27,7 +27,7 @@ import plots_ as plots
 
 import matplotlib.pyplot as plt
 
-OPTION = 1
+OPTION = 0
 
 if OPTION == 0:
     EXTRA_INFO =  ''

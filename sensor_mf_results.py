@@ -7,6 +7,7 @@ import os
 import numpy as np 
 import h5py
 import meg_info_sensor_space
+from scipy.stats import linregress
 info = meg_info_sensor_space.get_info()
 
 
@@ -88,13 +89,54 @@ def load_data_groups_subjects(condition,
 
 
 
+
+def load_data_groups_subjects_eog(condition,
+                                  groups = ['AV', 'V', 'AVr'],
+                                  subjects = info['subjects'],
+                                  mf_param_idx = 1,
+                                  max_j = 14,
+                                  n_cumul = 3,
+                                  SCALE_1 = 10,
+                                  SCALE_2 = 14):
+
+    _, all_cumulants, subjects_list, params, channels_picks, channels_names, ch_name2index = \
+        load_data_groups_subjects(condition, 
+                                  groups = groups,
+                                  subjects = subjects, 
+                                  mf_param_idx = mf_param_idx, 
+                                  channel_type = 'EOG',
+                                  max_j = max_j,
+                                  n_cumul = n_cumul)
+
+    n_subjects = all_cumulants.shape[0]
+    n_channels = all_cumulants.shape[1]
+    n_cumul    = all_cumulants.shape[2]
+    all_log_cumulants = np.zeros((n_subjects, n_channels, n_cumul))
+
+    log2_e  = np.log2(np.exp(1))
+    for ss in range(n_subjects):
+        for nn in range(n_channels):
+            for cc in range(n_cumul):
+                c2j = all_cumulants[ss, nn, cc, :]
+
+                x_reg       = np.arange(SCALE_1, SCALE_2+1)
+                y_reg       = c2j[SCALE_1-1:SCALE_2]
+
+                slope, _, _, _, _ = linregress(x_reg,y_reg)
+
+                all_log_cumulants[ss, nn, cc] = log2_e*slope
+
+
+    return all_log_cumulants, all_cumulants, subjects_list, params, channels_picks, channels_names, ch_name2index
+
+
 def load_logcumul_for_classification(conditions_0, conditions_1,
                                      log_cumulants,
                                      groups, subjects,
                                      mf_param_idx,
                                      channel_type = 'mag',
                                      n_cumul = 3,
-                                     use_max_c2_j = True):
+                                     clip_c2 = True):
     """
     conditions_0 : conditions for classif. label 0 (e.g. ['rest0', 'rest5'])
     conditions_1 : conditions for classif. label 1 (e.g. ['pretest', 'posttest'])
@@ -132,10 +174,54 @@ def load_logcumul_for_classification(conditions_0, conditions_1,
 
         X_cond = ()
         for c_idx in log_cumulants:
-            data = all_log_cumulants[:, :, c_idx]  # shape (n_subjects, n_cortical_labels)
+            if (c_idx >= 0) and (c_idx <= n_cumul):
+                data = all_log_cumulants[:, :, c_idx]  # shape (n_subjects, n_cortical_labels)
 
-            if c_idx == 1 and use_max_c2_j:
-                data = (all_cumulants[:, :, c_idx, 8:13]).max(axis=2)
+                if clip_c2 and c_idx == 1:
+                    data = data.clip(max = 0)
+
+            elif c_idx == -1:
+                data = (all_cumulants[:, :, 1, 8:13]).mean(axis=2)
+            elif c_idx == -2:
+                data = (all_cumulants[:, :, 1, 8:13]).max(axis=2)
+            elif c_idx == -3:
+                data = (all_cumulants[:, :, 1, 8:13]).max(axis=2) \
+                       -(all_cumulants[:, :, 1, 8:13]).min(axis=2)
+
+
+            elif c_idx == 100:
+                all_log_cumulants_eog, all_cumulants_eog, _, _, _, _, _ = \
+                    load_data_groups_subjects_eog(cond, 
+                                                             groups = groups,
+                                                             subjects = subjects, 
+                                                             mf_param_idx = mf_param_idx,
+                                                             max_j = 14,
+                                                             n_cumul = n_cumul)
+                data = all_log_cumulants_eog[:,:,0] 
+
+            elif c_idx == 101:
+                all_log_cumulants_eog, all_cumulants_eog, _, _, _, _, _ = \
+                    load_data_groups_subjects_eog(cond, 
+                                                             groups = groups,
+                                                             subjects = subjects, 
+                                                             mf_param_idx = mf_param_idx,
+                                                             max_j = 14,
+                                                             n_cumul = n_cumul)
+                data = all_log_cumulants_eog[:,:,1].clip(max = 0) 
+
+
+            elif c_idx == 200:
+                all_log_cumulants_eog, all_cumulants_eog, _, _, _, _, _ = \
+                    load_data_groups_subjects_eog(cond, 
+                                                             groups = groups,
+                                                             subjects = subjects, 
+                                                             mf_param_idx = mf_param_idx,
+                                                             max_j = 14,
+                                                             n_cumul = n_cumul)
+                # scales 10 to 14
+                data = (all_cumulants_eog[:,:,1,9:14]).max(axis=2) \
+                       -(all_cumulants_eog[:,:,1,9:14]).min(axis=2)
+
 
             X_cond = X_cond + (data,)
 
@@ -168,10 +254,53 @@ def load_logcumul_for_classification(conditions_0, conditions_1,
 
         X_cond = ()
         for c_idx in log_cumulants:
-            data = all_log_cumulants[:, :, c_idx]  # shape (n_subjects, n_cortical_labels)
+            if (c_idx >= 0) and (c_idx <= n_cumul):
+                data = all_log_cumulants[:, :, c_idx]  # shape (n_subjects, n_cortical_labels)
 
-            if c_idx == 1 and use_max_c2_j:
-                data = (all_cumulants[:, :, c_idx, 8:13]).max(axis=2)
+                if clip_c2 and c_idx == 1:
+                    data = data.clip(max = 0)
+
+            elif c_idx == -1:
+                data = (all_cumulants[:, :, 1, 8:13]).mean(axis=2)
+            elif c_idx == -2:
+                data = (all_cumulants[:, :, 1, 8:13]).max(axis=2)
+            elif c_idx == -3:
+                data = (all_cumulants[:, :, 1, 8:13]).max(axis=2) \
+                       -(all_cumulants[:, :, 1, 8:13]).min(axis=2)
+
+
+            elif c_idx == 100:
+                all_log_cumulants_eog, all_cumulants_eog, _, _, _, _, _ = \
+                    load_data_groups_subjects_eog(cond, 
+                                                             groups = groups,
+                                                             subjects = subjects, 
+                                                             mf_param_idx = mf_param_idx,
+                                                             max_j = 14,
+                                                             n_cumul = n_cumul)
+                data = all_log_cumulants_eog[:,:,0] 
+
+            elif c_idx == 101:
+                all_log_cumulants_eog, all_cumulants_eog, _, _, _, _, _ = \
+                    load_data_groups_subjects_eog(cond, 
+                                                             groups = groups,
+                                                             subjects = subjects, 
+                                                             mf_param_idx = mf_param_idx,
+                                                             max_j = 14,
+                                                             n_cumul = n_cumul)
+                data = all_log_cumulants_eog[:,:,1].clip(max = 0) 
+
+
+            elif c_idx == 200:
+                all_log_cumulants_eog, all_cumulants_eog, _, _, _, _, _ = \
+                    load_data_groups_subjects_eog(cond, 
+                                                             groups = groups,
+                                                             subjects = subjects, 
+                                                             mf_param_idx = mf_param_idx,
+                                                             max_j = 14,
+                                                             n_cumul = n_cumul)
+                # scales 10 to 14
+                data = (all_cumulants_eog[:,:,1,9:14]).max(axis=2) \
+                       -(all_cumulants_eog[:,:,1,9:14]).min(axis=2)
 
             X_cond = X_cond + (data,)    
 

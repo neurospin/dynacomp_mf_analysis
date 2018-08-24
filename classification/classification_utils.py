@@ -134,13 +134,13 @@ def my_learning_curve(classifier_name, X, y, groups, train_sizes, scoring,
                                       random_state = random_state )
 
 
-        # For testing
-        for train_index, test_index in outer_cv.split(X, y, groups = groups):
-            #print("TRAIN:", train_index, "TEST:", test_index)
-            print(groups[train_index])
-            print(groups[test_index])
-            print("TRAIN:", len(train_index), "TEST:", len(test_index))
-            print("     ")
+        # # For testing
+        # for train_index, test_index in outer_cv.split(X, y, groups = groups):
+        #     #print("TRAIN:", train_index, "TEST:", test_index)
+        #     print(groups[train_index])
+        #     print(groups[test_index])
+        #     print("TRAIN:", len(train_index), "TEST:", len(test_index))
+        #     print("     ")
 
 
         clf, fit_params = get_classifier(classifier_name, inner_cv, groups)

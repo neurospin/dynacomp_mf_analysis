@@ -20,7 +20,7 @@ import numpy as np
 from scipy.stats import ttest_1samp
 from statsmodels.stats.multitest import multipletests
 import source_mf_results as mfr
-import plots
+import plots_ as plots
 
 # from mne.stats import fdr_correction
 

@@ -14,6 +14,13 @@ import matplotlib.pyplot as plt
 import pandas as pd 
 import seaborn as sns
 
+
+from pylab import rcParams
+rcParams['figure.figsize'] = 18, 8
+rcParams['mathtext.default'] = 'regular'
+rcParams['font.size'] = 20
+
+
 #-----------------------------------------------------------------------
 # Functions
 #-----------------------------------------------------------------------
@@ -53,7 +60,7 @@ def plot_single_learning_curve(train_sizes, test_scores,
 # Summary using MF features
 #======================================================================
 
-PLOT_LEARNING_CURVES = True
+PLOT_LEARNING_CURVES = False
 PLOT_POINT           = True
 
 # Chooses the 'representative' point in the learning curve, e.g.,
@@ -67,15 +74,28 @@ POINT_INDEX          = -3
 #----------------------------------------------------------------------
 fignum = 'classification  with mf features'
 
-classifiers = ['linear_svm']
-features_names = ['c2', 'avgC2j', 'maxC2j', 'maxminC2j']
+classifiers = ['linear_svm'] # ['linear_svm_scaled', 'linear_svm', 'random_forest']
+features_names = ['EOGmaxminC2j', 'maxminC2j_EOGmaxminC2j']
 
-mf_params_list = [0,1,2,3]
-source_rec_params_list = [0,1]
+#~~
+features_names_readable = ['maxmin($C_2(j))^{\mathrm{EOG}}$', 'maxmin($C_2(j)$) and maxmin($C_2(j))^{\mathrm{EOG}}$']
+classifiers_readable    = ['Linear SVM']
+#~~
+
+mf_params_list = [0, 1, 2, 3]
+source_rec_params_list = [0]
+
+#~~
+formalism_readable = ['WCMF', 'p=$\infty$', 'p=1', 'p=2']
+source_rec_readable = ['$\lambda = 1/9$', '$\lambda = 1$']
+#~~
 
 # Possible conditions for classification
-cond0_list = [ ['rest5'],      ]
+cond0_list = [ ['rest5']     ]
 cond1_list = [ ['posttest']    ]
+
+TITLE = '$\mathrm{rest}_5$ versus posttest'
+# TITLE = '$\mathrm{rest}_0$ and $\mathrm{rest}_5$ versus pretest and posttest'
 
 conditions_classif = list(zip(cond0_list, cond1_list))
 
@@ -91,21 +111,34 @@ feature_names_list = []
 mf_rec_params_list = []
 test_score_list    = []
 
+#~~
+classifier_list_readable    = []
+feature_names_list_readable = []
+formalism_list_readable     = []
+source_rec_list_readable     = []
+#~~
+
 # Plot learning curves in different cases:
 for conditions_0, conditions_1 in conditions_classif:
     conditions_folder = '-'.join(conditions_0) + '_' + '-'.join(conditions_1)
 
-    for mf_params in mf_params_list:
-        for rec_params in source_rec_params_list:
-            for classif in classifiers:
-                for feat_name in features_names:
+    for mf_idx, mf_params in enumerate(mf_params_list):
+        for rec_idx, rec_params in enumerate(source_rec_params_list):
+            for classif_idx, classif in enumerate(classifiers):
+                for feat_idx, feat_name in enumerate(features_names):
+
                     # File containing classification results
                     filename = '%s_%s_mf_%d_rec_%d.h5'%(classif, feat_name, mf_params, rec_params)
                     outdir   = os.path.join('learning_curves_raw_data', conditions_folder)
                     filename = os.path.join(outdir, filename)
 
+                    if classif == 'random_forest' and (not os.path.isfile(filename)):
+                        classif = 'random_forest_no_cv'
+                        filename = '%s_%s_mf_%d_rec_%d.h5'%(classif, feat_name, mf_params, rec_params)
+                        outdir   = os.path.join('learning_curves_raw_data', conditions_folder)
+                        filename = os.path.join(outdir, filename)
 
-                    
+
                     print(filename)
 
 
@@ -128,41 +161,70 @@ for conditions_0, conditions_1 in conditions_classif:
                     mf_rec_params_list += [temp]*len(test_scores_1d)
                     test_score_list    += test_scores_1d.tolist()
 
+                    #~~
+                    classifier_list_readable    += [classifiers_readable[classif_idx]]*len(test_scores_1d)
+                    feature_names_list_readable += [features_names_readable[feat_idx]]*len(test_scores_1d)
+                    formalism_list_readable     += [formalism_readable[mf_idx]]*len(test_scores_1d)
+                    source_rec_list_readable    += [source_rec_readable[rec_idx]]*len(test_scores_1d)
+                    #~~
 
 
                     if PLOT_LEARNING_CURVES:
-                        label = '%s, %s_%s_mf_%d_rec_%d'%(classif, conditions_folder, feat_name,mf_params, rec_params)
+                        #label = '%s, %s_%s_mf_%d_rec_%d'%(classif, conditions_folder, feat_name,mf_params, rec_params)
+                        label = formalism_readable[mf_idx]
                         plot_single_learning_curve(train_sizes, test_scores, 
-                                                   title='', 
+                                                   title=classifiers_readable[classif_idx] + ' - '+ TITLE, 
                                                    label = label,
                                                    ylim = [0.4, 1.0], 
                                                    fignum = fignum)
+
+
 
 # Build dataset
 data_dict = {'classifier':classifier_list, 
              'conditions':conditions_list,
              'features'  :feature_names_list,
              'mf_rec'    : mf_rec_params_list,
-             'score'     :test_score_list}
+             'Accuracy'     :test_score_list,
+             'Classifier':classifier_list_readable,
+             'Features'  :feature_names_list_readable,
+             'Formalism' : formalism_list_readable,
+             'Regularization' : source_rec_list_readable}
+
 df  = pd.DataFrame.from_dict(data_dict)
 
+
+
+HUE = df['Features'] # df['conditions'] + ', ' +df['features']+'_'+df['mf_rec']
+
+
+#--------------------------------------------------------------------------------
 plt.figure()
-ax = sns.pointplot(x='score', y='classifier', data=df,
-                   hue = df['conditions'] + ', ' +df['features']+'_'+df['mf_rec'],
+ax = sns.pointplot(x='Accuracy', y='Formalism', data=df,
+                   hue = HUE ,
                    capsize=.1,
-                   linestyles='')
+                   linestyles='', ci="sd")
 plt.xlim([0.4, 1.0])
 plt.grid()
+plt.title(TITLE)
 # sns.set(style="darkgrid")
+plt.tight_layout()
+#--------------------------------------------------------------------------------
 
 
+#--------------------------------------------------------------------------------
 plt.figure()
-ax = sns.pointplot(x='score', y='mf_rec', data=df,
-                   hue = df['conditions'] + ', ' +df['features']+', '+df['classifier'],
+ax = sns.pointplot(x='Accuracy', y='Regularization', data=df,
+                   hue = df['Formalism'] ,  #df['conditions'] + ', ' +df['features']+', '+df['classifier']
                    capsize=.1,
-                   linestyles='')
+                   linestyles='', ci="sd")
 plt.xlim([0.4, 1.0])
+plt.title(TITLE)
+# sns.set(style="darkgrid")
+plt.tight_layout()
+
 plt.grid()
+#--------------------------------------------------------------------------------
 
 
 

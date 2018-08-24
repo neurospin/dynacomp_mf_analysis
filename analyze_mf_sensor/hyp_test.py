@@ -31,7 +31,7 @@ info   = meg_info_sensor_space.get_info()
 
 #raw filename - only one raw file is necessary to get information about 
 # sensor loacation -> used to plot
-raw_filename = '/neurospin/tmp/Omar/AV_rest0_raw_trans_sss.fif'
+raw_filename = 'C:\\Users\\omard\\Documents\\data_to_go\\dynacomp\\AV_rest0_raw_trans_sss.fif'
 
 # select sensor type
 sensor_type = 'mag'

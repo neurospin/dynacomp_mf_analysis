@@ -37,7 +37,7 @@ info   = meg_info_sensor_space.get_info()
 
 #raw filename - only one raw file is necessary to get information about 
 # sensor loacation -> used to plot
-raw_filename = '/neurospin/tmp/Omar/AV_rest0_raw_trans_sss.fif'
+raw_filename = 'C:\\Users\\omard\\Documents\\data_to_go\\dynacomp\\AV_rest0_raw_trans_sss.fif'
 
 # select sensor type
 sensor_type = 'EOG'
@@ -60,43 +60,52 @@ task_condition = 'posttest'
 mf_params_idx = 1
 
 # Load cumulants and log-cumulants
-_, all_cumulants_rest, subjects_list, params, _, _, _ = \
-     mfr.load_data_groups_subjects(rest_condition, 
-     							   groups = groups,
-     							   subjects = subjects,
-     							   mf_param_idx = mf_params_idx, 
-     							   channel_type = sensor_type)
-_, all_cumulants_task, subjects_list, params, channels_picks, channels_names, ch_name2index = \
-    mfr.load_data_groups_subjects(task_condition, 
-     							  groups = groups,
-     							  subjects = subjects, 
-    							  mf_param_idx = mf_params_idx, 
-    							  channel_type = sensor_type)
+# _, all_cumulants_rest, subjects_list, params, _, _, _ = \
+#      mfr.load_data_groups_subjects(rest_condition, 
+#      							   groups = groups,
+#      							   subjects = subjects,
+#      							   mf_param_idx = mf_params_idx, 
+#      							   channel_type = sensor_type)
+# _, all_cumulants_task, subjects_list, params, channels_picks, channels_names, ch_name2index = \
+#     mfr.load_data_groups_subjects(task_condition, 
+#      							  groups = groups,
+#      							  subjects = subjects, 
+#     							  mf_param_idx = mf_params_idx, 
+#     							  channel_type = sensor_type)
 
-n_subjects = all_cumulants_rest.shape[0]
-n_channels = all_cumulants_rest.shape[1]
-n_cumul    = all_cumulants_rest.shape[2]
-all_log_cumulants_rest = np.zeros((n_subjects, n_channels, n_cumul))
-all_log_cumulants_task = np.zeros((n_subjects, n_channels, n_cumul))
+# n_subjects = all_cumulants_rest.shape[0]
+# n_channels = all_cumulants_rest.shape[1]
+# n_cumul    = all_cumulants_rest.shape[2]
+# all_log_cumulants_rest = np.zeros((n_subjects, n_channels, n_cumul))
+# all_log_cumulants_task = np.zeros((n_subjects, n_channels, n_cumul))
 
-log2_e  = np.log2(np.exp(1))
-for ss in range(n_subjects):
-    for nn in range(n_channels):
-        for cc in range(n_cumul):
-            c2j_rest = all_cumulants_rest[ss, nn, cc, :]
-            c2j_task = all_cumulants_task[ss, nn, cc, :]
+# log2_e  = np.log2(np.exp(1))
+# for ss in range(n_subjects):
+#     for nn in range(n_channels):
+#         for cc in range(n_cumul):
+#             c2j_rest = all_cumulants_rest[ss, nn, cc, :]
+#             c2j_task = all_cumulants_task[ss, nn, cc, :]
 
-            x_reg       = np.arange(SCALE_1, SCALE_2+1)
-            y_reg_rest  = c2j_rest[SCALE_1-1:SCALE_2]
-            y_reg_task  = c2j_task[SCALE_1-1:SCALE_2]
+#             x_reg       = np.arange(SCALE_1, SCALE_2+1)
+#             y_reg_rest  = c2j_rest[SCALE_1-1:SCALE_2]
+#             y_reg_task  = c2j_task[SCALE_1-1:SCALE_2]
 
-            slope_rest, _, _, _, _ = linregress(x_reg,y_reg_rest)
-            slope_task, _, _, _, _ = linregress(x_reg,y_reg_task)
+#             slope_rest, _, _, _, _ = linregress(x_reg,y_reg_rest)
+#             slope_task, _, _, _, _ = linregress(x_reg,y_reg_task)
 
-            all_log_cumulants_rest[ss, nn, cc] = log2_e*slope_rest
-            all_log_cumulants_task[ss, nn, cc] = log2_e*slope_task
+#             all_log_cumulants_rest[ss, nn, cc] = log2_e*slope_rest
+#             all_log_cumulants_task[ss, nn, cc] = log2_e*slope_task
 
-
+all_log_cumulants_rest, all_cumulants_rest, subjects_list, params, _, _, _ = \
+     mfr.load_data_groups_subjects_eog(rest_condition, 
+                                   groups = groups,
+                                   subjects = subjects,
+                                   mf_param_idx = mf_params_idx)
+all_log_cumulants_task, all_cumulants_task, subjects_list, params, channels_picks, channels_names, ch_name2index = \
+    mfr.load_data_groups_subjects_eog(task_condition, 
+                                  groups = groups,
+                                  subjects = subjects, 
+                                  mf_param_idx = mf_params_idx)
 
 
 

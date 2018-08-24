@@ -11,9 +11,15 @@ import sys, os
 from os.path import dirname, abspath
 
 
+# SUBJECTS_DIR = '/neurospin/meg/meg_tmp/Dynacomp_Ciuciu_2011/yousra'
+# DATASET_DIR  = '/neurospin/tmp/Omar/data'
+# FSAVERAGE_DIR = '/neurospin/tmp/Omar/data'
+
+
 SUBJECTS_DIR = '/neurospin/meg/meg_tmp/Dynacomp_Ciuciu_2011/yousra'
 DATASET_DIR  = '/neurospin/tmp/Omar/data'
-FSAVERAGE_DIR = '/neurospin/tmp/Omar/data'
+FSAVERAGE_DIR = 'C:\\Users\\omard\\Documents\\data_to_go\\dynacomp'
+
 
 def get_info(dataset_dir = DATASET_DIR, 
              subjects_dir = SUBJECTS_DIR, 

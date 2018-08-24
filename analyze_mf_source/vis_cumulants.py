@@ -13,8 +13,14 @@ import source_mf_results as mfr
 import matplotlib.pyplot as plt
 from scipy.stats import linregress
 
+from pylab import rcParams
+rcParams['figure.figsize'] = 18, 8
+rcParams['mathtext.default'] = 'regular'
+rcParams['font.size'] = 16
 
-OPTION = 1
+
+
+OPTION = 0
 
 if OPTION == 0:
     EXTRA_INFO =  ''
@@ -89,9 +95,9 @@ def run():
                         label = region + ', slope*log2(e) = %0.3f'%(log2e*slope))
                 #
 
-                ax.grid()
+                ax.grid(True)
                 ax.set_xlabel('scale j')
-                ax.set_ylabel('C%d(j)'%(cumul_idx+1))
+                ax.set_ylabel('$C_%d(j)$'%(cumul_idx+1))
                 ax.legend()
                 ax.set_title(condition)
                 color_idx += 1

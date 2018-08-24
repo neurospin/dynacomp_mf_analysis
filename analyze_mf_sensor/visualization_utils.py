@@ -23,7 +23,7 @@ def plot_data_topo(data, pos, vmin = np.min, vmax= np.max,  title = '', cmap = '
     ax_topo.set_xlabel(title)
 
 
-def plot_cumulants(cumulants_list, j1=9, j2=13, title = '', labels = None):
+def plot_cumulants(cumulants_list, j1=9, j2=13, title = '', labels = None, cumul_idx = None):
     colors = ['b', 'r']
     x_reg  = np.arange(j1, j2+1)
     plt.figure()
@@ -48,7 +48,10 @@ def plot_cumulants(cumulants_list, j1=9, j2=13, title = '', labels = None):
 
 
     plt.xlabel('j')
-    plt.ylabel('C(j)')
+    if cumul_idx is not None:
+        plt.ylabel('$C_%d(j)$'%(cumul_idx+1))
+    else:
+        plt.ylabel('C(j)')
     plt.legend()
     plt.grid(True)
 

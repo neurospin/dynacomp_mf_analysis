@@ -24,10 +24,10 @@ from sklearn.linear_model import LogisticRegression
 import h5py
 
 RANDOM_STATE = 123
-N_JOBS       = 6
+N_JOBS       = 1
 
 PLOT_LEARNING    = True
-PLOT_IMPORTANCES = True
+PLOT_IMPORTANCES = False
 SHOW_PLOTS       = False
 
 SAVE             = True
@@ -74,7 +74,7 @@ conditions_1 = ['posttest']
 # Classification parameters 
 #===============================================================================
 # Choose classifier
-classifier_name_list = ['linear_svm', 'linear_svm_scaled']
+classifier_name_list = ['linear_svm']
 
 # Define cross validation scheme
 n_splits   = 30
@@ -85,10 +85,10 @@ scoring    = ['accuracy']
 # Select classifier
 for classifier_name in classifier_name_list:
     # Select MF parameters and source reconstruction parameters
-    for mf_params_idx in [1,2,3]:    # 0, 1, 2 or 3 
-        for source_rec_params_idx in [0, 1]:  # 0 or 1
+    for mf_params_idx in [0, 1, 2, 3]:    # 0, 1, 2 or 3 
+        for source_rec_params_idx in [0]:  # 0 or 1
             # Cumulants used for classification
-            for log_cumulants in [[0, -1], [-1],[0, -2], [-2], [0, -3], [-3]]:  # [0, 1], [0] or [1]
+            for log_cumulants in [[101], [1, 101]]:  # [0, 1], [0] or [1]
                 print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
                 print("Running: ", mf_params_idx, source_rec_params_idx, log_cumulants)
                 print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
@@ -118,6 +118,23 @@ for classifier_name in classifier_name_list:
                     features_info = 'c1_maxminC2j'
                 elif log_cumulants == [-3]:
                     features_info = 'maxminC2j'
+
+                elif log_cumulants == [0,100]:
+                    features_info = 'c1_EOG'
+                elif log_cumulants == [-3, 100]:
+                    features_info = 'maxminC2j_EOG'
+                elif log_cumulants == [100]:
+                    features_info = 'EOG'
+
+                elif log_cumulants == [-3, 200]:
+                    features_info = 'maxminC2j_EOGmaxminC2j'
+                elif log_cumulants == [200]:
+                    features_info = 'EOGmaxminC2j'
+
+                elif log_cumulants == [1,101]:
+                    features_info = 'c2_EOGc2'
+                elif log_cumulants == [101]:
+                    features_info = 'EOGc2'
 
                 #===============================================================================
                 # Load classification data

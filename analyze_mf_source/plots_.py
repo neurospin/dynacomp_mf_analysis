@@ -79,7 +79,8 @@ def plot_brain(data, fmin = -1.0, fmax = 1.0, png_filename = None, positive_only
 
 
     brain = stc.plot(hemi = 'split', views = ['lat','med'],
-            colormap= cm,subjects_dir=subjects_dir)
+            colormap= cm,subjects_dir=subjects_dir,
+            background = 'white', foreground='black')
 
     # try:
     if True:
@@ -101,6 +102,7 @@ def plot_brain(data, fmin = -1.0, fmax = 1.0, png_filename = None, positive_only
             brain.scale_data_colormap(fmin=fmin, fmid=fmid, fmax=fmax, transparent=True)
     # except:
     #     pass
+
 
     # Save figure
     if png_filename is not None:

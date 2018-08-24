@@ -8,7 +8,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from scipy.stats import linregress
 
 
-def plot_data_topo(data, pos, vmin = np.min, vmax= np.max,  title = '', cmap = 'viridis'):
+def plot_data_topo(data, pos, vmin = np.min, vmax= np.max,  title = '', cmap = 'seismic'):
     # plt.figure()
     fig, ax_topo = plt.subplots(1, 1, figsize=(7, 5))
     image, _ = mne.viz.plot_topomap(data, pos,

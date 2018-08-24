@@ -26,10 +26,10 @@ import mne
 import visualization_utils as v_utils
 
 RANDOM_STATE = 123
-N_JOBS       = 6
+N_JOBS       = 1
 
 PLOT_LEARNING    = True
-PLOT_IMPORTANCES = True
+PLOT_IMPORTANCES = False
 SHOW_PLOTS       = False
 
 SAVE             = True
@@ -66,7 +66,7 @@ conditions_1 = ['posttest']
 
 
 # Load raw to get info about sensor positions
-raw_filename = '/neurospin/tmp/Omar/AV_rest0_raw_trans_sss.fif'
+raw_filename = 'C:\\Users\\omard\\Documents\\data_to_go\\dynacomp\\AV_rest0_raw_trans_sss.fif'
 raw = mne.io.read_raw_fif(raw_filename)
 
 
@@ -78,7 +78,7 @@ raw = mne.io.read_raw_fif(raw_filename)
 # Classification parameters 
 #===============================================================================
 # Choose classifier
-classifier_name_list = ['random_forest_no_cv']
+classifier_name_list = ['linear_svm', 'linear_svm_scaled']
 
 # Define cross validation scheme
 n_splits   = 30
@@ -89,10 +89,10 @@ scoring    = ['accuracy']
 # Select classifier
 for classifier_name in classifier_name_list:
     # Select MF parameters and source reconstruction parameters
-    for mf_params_idx in [0,1,2,3]:    # 0, 1, 2 or 3 
+    for mf_params_idx in [0, 1, 2, 3]:    # 0, 1, 2 or 3 
         for channel_type in ['mag']:
             # Cumulants used for classification
-            for log_cumulants in [[0]]:  # [0, 1], [0] or [1]
+            for log_cumulants in [[100], [0, 100], [200], [-3, 200]]:  # [0, 1], [0] or [1]
                 print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
                 print("Running: ", mf_params_idx, channel_type, log_cumulants)
                 print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
@@ -108,6 +108,38 @@ for classifier_name in classifier_name_list:
                 elif log_cumulants == [1]:
                     features_info = 'c2'
 
+                elif log_cumulants == [0,-1]:
+                    features_info = 'c1_avgC2j'
+                elif log_cumulants == [-1]:
+                    features_info = 'avgC2j'
+
+                elif log_cumulants == [0,-2]:
+                    features_info = 'c1_maxC2j'
+                elif log_cumulants == [-2]:
+                    features_info = 'maxC2j'
+
+                elif log_cumulants == [0,-3]:
+                    features_info = 'c1_maxminC2j'
+                elif log_cumulants == [-3]:
+                    features_info = 'maxminC2j'
+
+                elif log_cumulants == [0,100]:
+                    features_info = 'c1_EOG'
+                elif log_cumulants == [-3, 100]:
+                    features_info = 'maxminC2j_EOG'
+                elif log_cumulants == [100]:
+                    features_info = 'EOG'
+
+                elif log_cumulants == [-3, 200]:
+                    features_info = 'maxminC2j_EOGmaxminC2j'
+                elif log_cumulants == [200]:
+                    features_info = 'EOGmaxminC2j'
+
+                elif log_cumulants == [1,101]:
+                    features_info = 'c2_EOGc2'
+                elif log_cumulants == [101]:
+                    features_info = 'EOGc2'
+
                 #===============================================================================
                 # Load classification data
                 #===============================================================================
@@ -116,8 +148,7 @@ for classifier_name in classifier_name_list:
                                                                  log_cumulants,
                                                                  groups, subjects,
                                                                  mf_params_idx,
-                                                                 channel_type,
-                                                                 use_max_c2_j = True)
+                                                                 channel_type)
 
                 n_subjects = len(subjects_list)
 
@@ -193,7 +224,7 @@ for classifier_name in classifier_name_list:
                                                    pos, 
                                                    vmin = -np.abs(feat_to_plot).max(), 
                                                    vmax= np.abs(feat_to_plot).max(),
-                                                   cmap = 'viridis')
+                                                   cmap = 'seismic')
                         if positive_only:
                             v_utils.plot_data_topo(feat_to_plot, 
                                                    pos, 

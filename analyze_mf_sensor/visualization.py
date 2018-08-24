@@ -12,6 +12,13 @@ import visualization_utils as v_utils
 import mne
 
 
+from pylab import rcParams
+rcParams['figure.figsize'] = 12, 8
+rcParams['mathtext.default'] = 'regular'
+rcParams['font.size'] = 20
+
+
+
 #===============================================================================
 # Global parameters 
 #===============================================================================
@@ -21,7 +28,7 @@ info   = meg_info_sensor_space.get_info()
 
 #raw filename - only one raw file is necessary to get information about 
 # sensor loacation -> used to plot
-raw_filename = '/neurospin/tmp/Omar/AV_rest0_raw_trans_sss.fif'
+raw_filename = 'C:\\Users\\omard\\Documents\\data_to_go\\dynacomp\\AV_rest0_raw_trans_sss.fif'
 
 # select sensor type
 sensor_type = 'mag'
@@ -122,7 +129,7 @@ if sensor_type == 'mag':
 
         v_utils.plot_cumulants( [avg_cumulants_rest[sensor1_index, 0, :], avg_cumulants_task[sensor1_index, 0, :] ],
                         title ='H rest/task - ' + sensor1_name,
-                        labels = ['rest', 'task'])
+                        labels = ['rest', 'task'], cumul_idx = see_cumulant)
 
         # Sensors for comparison of different regions (rest)
         sensor2_name = 'MEG0811'
@@ -132,7 +139,7 @@ if sensor_type == 'mag':
 
         v_utils.plot_cumulants( [avg_cumulants_rest[sensor2_index, 0, :], avg_cumulants_rest[sensor3_index, 0, :] ],
                         title ='H rest - ' + sensor2_name + ' vs. ' + sensor3_name,
-                        labels = [sensor2_name, sensor3_name])
+                        labels = [sensor2_name, sensor3_name], cumul_idx = see_cumulant)
 
 
     if see_cumulant == 1:
@@ -141,13 +148,13 @@ if sensor_type == 'mag':
         sensor4_index = ch_name2index[sensor4_name]
         v_utils.plot_cumulants( [avg_cumulants_rest[sensor4_index, 1, :], avg_cumulants_task[sensor4_index, 1, :] ],
                         title ='M rest/task - ' + sensor4_name,
-                        labels = ['rest', 'task'])
+                        labels = ['rest', 'task'], cumul_idx = see_cumulant)
 
         sensor5_name = 'MEG1811'
         sensor5_index = ch_name2index[sensor5_name]
         v_utils.plot_cumulants( [avg_cumulants_rest[sensor5_index, 1, :], avg_cumulants_task[sensor5_index, 1, :] ],
                         title ='M rest/task - ' + sensor5_name,
-                        labels = ['rest', 'task'])
+                        labels = ['rest', 'task'], cumul_idx = see_cumulant)
 
 
     if see_cumulant == 0:
