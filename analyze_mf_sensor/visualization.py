@@ -35,7 +35,7 @@ sensor_type = 'mag'
 
 
 # select analysis type: 0 for H, 1 for M
-see_cumulant = 1
+see_cumulant = 0
 
 # Select groups and subjects
 groups = ['AV', 'V' ,'AVr']
@@ -46,7 +46,7 @@ rest_condition = 'rest5'
 task_condition = 'posttest'
 
 # Select MF parameters and source reconstruction parameters
-mf_params_idx = 0
+mf_params_idx = 1
 
 # Load cumulants and log-cumulants
 all_log_cumulants_rest, all_cumulants_rest, subjects_list, params, _, _, _ = \

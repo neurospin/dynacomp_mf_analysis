@@ -60,7 +60,7 @@ def plot_single_learning_curve(train_sizes, test_scores,
 # Summary using MF features
 #======================================================================
 
-PLOT_LEARNING_CURVES = False
+PLOT_LEARNING_CURVES = True
 PLOT_POINT           = True
 
 # Chooses the 'representative' point in the learning curve, e.g.,
@@ -74,19 +74,19 @@ POINT_INDEX          = -3
 #----------------------------------------------------------------------
 fignum = 'classification  with mf features'
 
-classifiers = ['linear_svm'] # ['linear_svm_scaled', 'linear_svm', 'random_forest']
-features_names = ['EOGmaxminC2j', 'maxminC2j_EOGmaxminC2j']
+classifiers = ['linear_svm_scaled', 'linear_svm', 'random_forest']
+features_names = ['c1', 'c2', 'c1_c2', 'avgC2j', 'maxminC2j']
 
 #~~
-features_names_readable = ['maxmin($C_2(j))^{\mathrm{EOG}}$', 'maxmin($C_2(j)$) and maxmin($C_2(j))^{\mathrm{EOG}}$']
-classifiers_readable    = ['Linear SVM']
+features_names_readable = ['$c_1$', '$c_2$', '$c_1$ and $c_2$', 'avg($C_2(j)$)' ,'maxmin($C_2(j)$)']
+classifiers_readable    = ['Scaling + Linear SVM', 'Linear SVM', 'Random Forest']
 #~~
 
-mf_params_list = [0, 1, 2, 3]
+mf_params_list = [1]
 source_rec_params_list = [0]
 
 #~~
-formalism_readable = ['WCMF', 'p=$\infty$', 'p=1', 'p=2']
+formalism_readable = ['p=$\infty$', 'p=1', 'p=2']
 source_rec_readable = ['$\lambda = 1/9$', '$\lambda = 1$']
 #~~
 
@@ -147,7 +147,7 @@ for conditions_0, conditions_1 in conditions_classif:
                     with h5py.File(filename, "r") as f:
                         # train_sizes is divided by len(conditions_0) so that
                         # train_sizes = number of subjects in training set
-                        train_sizes  = f['train_sizes'][:] / len(conditions_0)  
+                        train_sizes  = f['train_sizes'][:] #/ len(conditions_0)  
                         train_scores = f['train_scores'][:]
                         test_scores  = f['test_scores'][:]
 
@@ -200,7 +200,7 @@ HUE = df['Features'] # df['conditions'] + ', ' +df['features']+'_'+df['mf_rec']
 
 #--------------------------------------------------------------------------------
 plt.figure()
-ax = sns.pointplot(x='Accuracy', y='Formalism', data=df,
+ax = sns.pointplot(x='Accuracy', y='Classifier', data=df,
                    hue = HUE ,
                    capsize=.1,
                    linestyles='', ci="sd")
