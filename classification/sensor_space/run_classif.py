@@ -29,8 +29,8 @@ RANDOM_STATE = 123
 N_JOBS       = 1
 
 PLOT_LEARNING    = True
-PLOT_IMPORTANCES = False
-SHOW_PLOTS       = False
+PLOT_IMPORTANCES = True
+SHOW_PLOTS       = True
 
 SAVE             = True
 
@@ -78,7 +78,7 @@ raw = mne.io.read_raw_fif(raw_filename)
 # Classification parameters 
 #===============================================================================
 # Choose classifier
-classifier_name_list = ['random_forest_no_cv']
+classifier_name_list = ['random_forest_feat_imp']
 
 # Define cross validation scheme
 n_splits   = 30
@@ -92,7 +92,7 @@ for classifier_name in classifier_name_list:
     for mf_params_idx in [1]:    # 0, 1, 2 or 3 
         for channel_type in ['mag']:
             # Cumulants used for classification
-            for log_cumulants in [ [0, -3]]:  # [0, 1], [0] or [1]
+            for log_cumulants in [ [0]]:  # [0, 1], [0] or [1]
                 print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
                 print("Running: ", mf_params_idx, channel_type, log_cumulants)
                 print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")

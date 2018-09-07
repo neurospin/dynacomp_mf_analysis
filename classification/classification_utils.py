@@ -72,6 +72,12 @@ def get_classifier(classifier_name, inner_cv, groups_cv):
         # parameters required to fit the classifier
         fit_params = {}
 
+    elif classifier_name == 'random_forest_feat_imp':
+        rf = RandomForestClassifier(n_estimators=300, max_features = 1)
+        clf = rf
+        # parameters required to fit the classifier
+        fit_params = {}
+
 
     return clf, fit_params
 

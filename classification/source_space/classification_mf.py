@@ -63,7 +63,7 @@ subjects['AVr'] = info['subjects']['AVr']
 # source_rec_params_idx = 0
 
 # Conditions for classification
-conditions_0 = ['rest5']
+conditions_0 = ['pretest']
 conditions_1 = ['posttest']
 
 # 
@@ -74,7 +74,7 @@ conditions_1 = ['posttest']
 # Classification parameters 
 #===============================================================================
 # Choose classifier
-classifier_name_list = ['random_forest_no_cv', 'linear_svm', 'linear_svm_scaled']
+classifier_name_list = ['random_forest_no_cv', 'linear_svm_scaled', 'linear_svm']
 
 # Define cross validation scheme
 n_splits   = 30
@@ -85,10 +85,10 @@ scoring    = ['accuracy']
 # Select classifier
 for classifier_name in classifier_name_list:
     # Select MF parameters and source reconstruction parameters
-    for mf_params_idx in [1]:    # 0, 1, 2 or 3 
-        for source_rec_params_idx in [0]:  # 0 or 1
+    for mf_params_idx in [0, 1, 2, 3]:    # 0, 1, 2 or 3 
+        for source_rec_params_idx in [1]:  # 0 or 1
             # Cumulants used for classification
-            for log_cumulants in [[-1], [-3]]:  # [0, 1], [0] or [1]
+            for log_cumulants in [[0], [1], [0,1]]:  # [0, 1], [0] or [1]
                 print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
                 print("Running: ", mf_params_idx, source_rec_params_idx, log_cumulants)
                 print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")

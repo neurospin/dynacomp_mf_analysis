@@ -43,12 +43,13 @@ Information about data location, groups, subjects and conditions must be defined
 The following scripts contain functions to easily load the desired data:
 
 * source_mf_results.py, to access MF analysis results on source space
-* ~~sensor_mf_results.py, to access MF analysis results on source space ()~~ (to be implemented)
+* sensor_mf_results.py, to access MF analysis results on source space
 
 
 ## Scripts to analyze/visualize results ##
 
 * analyze_mf_source/vis_log_cumulants.py:  hypotesis testing for H (c1) and M (-c2) and plot on cortical surface 
-
+* analyze_mf_source/vis_contrast.py     :  visualize contrasts, e.g., (H rest)- (H task)
+* analyze_mf_source/vis_cumulants.py    :  visualize curves C1(j) and C2(j)
 
 

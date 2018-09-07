@@ -80,28 +80,8 @@ correction_multiple_tests = 'fdr' # 'fdr', 'bonferroni' or None
 def compute_pvalue(x, y, outcoef=None):
     """
     Apply t test for 2 related samples x and y
-    Args:
-        tail:   0 for 2-tail, +1 or -1 for 1-tail
     """
     
-    # outliers = (samples - samples.mean()) > 2*samples.std()
-    # samples = samples[~outliers]
-
-    # # remove outliers
-    # tmp1 = x
-    # tmp2 = y
-
-    # if outcoef is not None:
-    #     outliers1= np.abs(tmp1-my_mean(tmp1)) > outcoef*my_std(tmp1)
-    #     tmp1= tmp1[~outliers1]
-    #     outliers2= np.abs(tmp2-my_mean(tmp2)) > outcoef*my_std(tmp2)
-    #     tmp2= tmp2[~outliers2]
-    
-    # t, pval = ttest_ind(tmp2,tmp1) # test tmp2-tmp1 (ie b-a)
-
-    # t, pval = ttest_1samp(x - y, 0)
-
-
     diff = y - x
     outliers = np.abs(diff - my_mean(diff)) > outcoef*my_std(diff)
     diff  = diff[~outliers]
@@ -109,16 +89,6 @@ def compute_pvalue(x, y, outcoef=None):
     result = ttest_1samp(diff, 0)
     pval   = result.pvalue
     stat   = result.statistic
-
-    # result = wilcoxon(diff)
-    # pval   = result.pvalue
-    # stat   = result.statistic
-
-    # positive statistic: x > y
-    # tail = 1 -> test H1: x>y
-
-    # if tail!=0:
-    #     pval = 0.5*(1+np.sign(tail)*np.sign(stat)*(pval-1))
 
     return pval
 

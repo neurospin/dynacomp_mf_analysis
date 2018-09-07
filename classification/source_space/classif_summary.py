@@ -74,27 +74,35 @@ POINT_INDEX          = -3
 #----------------------------------------------------------------------
 fignum = 'classification  with mf features'
 
-classifiers = ['linear_svm_scaled', 'linear_svm', 'random_forest']
-features_names = ['c1', 'c2', 'c1_c2', 'avgC2j', 'maxminC2j']
+classifiers = ['linear_svm_scaled']
+features_names = ['c1', 'c2' ,'c1_c2']
 
 #~~
-features_names_readable = ['$c_1$', '$c_2$', '$c_1$ and $c_2$', 'avg($C_2(j)$)' ,'maxmin($C_2(j)$)']
-classifiers_readable    = ['Scaling + Linear SVM', 'Linear SVM', 'Random Forest']
+features_names_readable = ['$c_1$', '$c_2$', '$c_1$ and $c_2$', 'maxmin($C_2(j)$)', 'avg($C_2(j)$)']
+classifiers_readable    = ['Scaling + Linear SVM']
 #~~
 
-mf_params_list = [1]
-source_rec_params_list = [0]
+# classifiers = ['linear_svm_scaled']
+# features_names = ['EOG', 'c1_EOG' ,'EOGc2', 'c2_EOGc2']
+
+# #~~
+# features_names_readable = ['$c_1^\mathrm{EOG}$', '$c_1$ and $c_1^\mathrm{EOG}$', '$c_2^\mathrm{EOG}$', '$c_2$ and $c_2^\mathrm{EOG}$']
+# classifiers_readable    = ['Scaling + Linear SVM']
+# #~~
+
+mf_params_list = [1, 3]
+source_rec_params_list = [0, 1]
 
 #~~
-formalism_readable = ['p=$\infty$', 'p=1', 'p=2']
+formalism_readable = ['p=$\infty$', 'p=2']
 source_rec_readable = ['$\lambda = 1/9$', '$\lambda = 1$']
 #~~
 
 # Possible conditions for classification
-cond0_list = [ ['rest5']     ]
+cond0_list = [ ['pretest']     ]
 cond1_list = [ ['posttest']    ]
 
-TITLE = '$\mathrm{rest}_5$ versus posttest'
+TITLE = 'pretest versus posttest'
 # TITLE = '$\mathrm{rest}_0$ and $\mathrm{rest}_5$ versus pretest and posttest'
 
 conditions_classif = list(zip(cond0_list, cond1_list))
@@ -126,6 +134,9 @@ for conditions_0, conditions_1 in conditions_classif:
         for rec_idx, rec_params in enumerate(source_rec_params_list):
             for classif_idx, classif in enumerate(classifiers):
                 for feat_idx, feat_name in enumerate(features_names):
+
+                    if mf_params == 0 and ('c2' in feat_name):
+                        continue
 
                     # File containing classification results
                     filename = '%s_%s_mf_%d_rec_%d.h5'%(classif, feat_name, mf_params, rec_params)
@@ -214,8 +225,8 @@ plt.tight_layout()
 
 #--------------------------------------------------------------------------------
 plt.figure()
-ax = sns.pointplot(x='Accuracy', y='Regularization', data=df,
-                   hue = df['Formalism'] ,  #df['conditions'] + ', ' +df['features']+', '+df['classifier']
+ax = sns.pointplot(x='Accuracy', y='Formalism', data=df,
+                   hue = HUE ,  #df['conditions'] + ', ' +df['features']+', '+df['classifier']
                    capsize=.1,
                    linestyles='', ci="sd")
 plt.xlim([0.4, 1.0])
@@ -226,6 +237,20 @@ plt.tight_layout()
 plt.grid()
 #--------------------------------------------------------------------------------
 
+
+#--------------------------------------------------------------------------------
+plt.figure()
+ax = sns.pointplot(x='Accuracy', y='Regularization', data=df,
+                   hue = HUE + ' / ' +  df['Formalism'],  #df['conditions'] + ', ' +df['features']+', '+df['classifier']
+                   capsize=.1,
+                   linestyles='', ci="sd")
+plt.xlim([0.4, 1.0])
+plt.title(TITLE)
+# sns.set(style="darkgrid")
+plt.tight_layout()
+
+plt.grid()
+#--------------------------------------------------------------------------------
 
 
 plt.show()
